@@ -1,17 +1,18 @@
-import { Container } from '@material-ui/core';
-import React from 'react'
-import TappyButton from './TappyButton'
+import { Container } from "@material-ui/core";
+import React from "react";
+import TappyButton from "./TappyButton";
 
 function TappyList(props) {
-
-    const buttonList = ['Bookmark', 'Positive', 'Negative', 'Insight', 'Action Item'];
-
-    return buttonList.map((buttonName, index) => (
-        <Container key={index}>
-          <TappyButton onButtonClick = {props.handleTap} name={buttonName}/>
-          </Container>
-      ));
-
+  return props.buttonList.map((buttonName, index) => (
+    <Container key={index}>
+      <TappyButton
+        onButtonClick={props.handleTap}
+        name={buttonName}
+        id={index}
+        numClicks={props.numClicks[index]}
+      />
+    </Container>
+  ));
 }
 
-export default TappyList
+export default TappyList;

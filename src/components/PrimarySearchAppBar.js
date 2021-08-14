@@ -31,7 +31,7 @@ export default function ButtonAppBar() {
             <MenuIcon />
           </IconButton>
           <Typography variant="h6" className={classes.title}>
-            Niko.ai
+            Noki.ai
           </Typography>
           <LoginButton/>
           <LogoutButton/>
