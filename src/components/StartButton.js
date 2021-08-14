@@ -9,7 +9,7 @@ const useStyles = makeStyles({
     border: 0,
     minHeight: '60px',
     minWidth: '300px',
-    marginBottom: 15,
+    marginBottom: 40,
     borderRadius: 30,
     color: 'white',
   }

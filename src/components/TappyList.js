@@ -2,17 +2,13 @@ import { Container } from '@material-ui/core';
 import React from 'react'
 import TappyButton from './TappyButton'
 
-function TappyList() {
+function TappyList(props) {
 
     const buttonList = ['Bookmark', 'Positive', 'Negative', 'Insight', 'Action Item'];
 
-    const handleTap = (name, time) => {
-        console.log(name, time)
-      }
-
     return buttonList.map((buttonName, index) => (
-        <Container>
-          <TappyButton onButtonClick = {handleTap} name={buttonName} />
+        <Container key={index}>
+          <TappyButton onButtonClick = {props.handleTap} name={buttonName}/>
           </Container>
       ));
 

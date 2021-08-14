@@ -1,42 +1,43 @@
 import { Container } from "@material-ui/core";
 import React, { useState } from "react";
-import Grid from "@material-ui/core/Grid";
 
 import StartButton from "./StartButton";
 import TappyList from "./TappyList";
+import TappyComment from "./TappyComment";
 
 function TappyWindow() {
-
   const [running, setRunning] = useState(false);
+  const [isForm, setIsForm] = useState(false);
 
   const handleStartStop = () => {
     setRunning(!running);
   };
 
+  const handleTap = (name, time) => {
+    console.log(name, time);
+    setIsForm(true);
+  };
+
+  const handleComment = (comment) => {
+      console.log(comment)
+    setIsForm(false);
+  }
+
   return (
-    <Container maxWidth='sm'>
-      <Grid
-        container
-        alignItems="center"
-        justify="center"
-        align = "center"
-        
-        style={{ minHeight: "100vh"}}
-      >
-        <Grid item>
-          <StartButton onStartStop={handleStartStop} running={running} />
+    <Container
+      maxWidth="sm"
+      justify="center"
+      align="center"
+    >
+      <Container style={{marginTop: '20vh'}}>
+        <StartButton onStartStop={handleStartStop} running={running} />
+      </Container>
 
-            <div>
-            {running ? "App is running" : "App is stopped"}
-
-            </div>
-          
-
-          <TappyList />
-        </Grid>
-      </Grid>
-
+      <Container>
+        {isForm ? <TappyComment handleComment={handleComment}/> : <TappyList handleTap={handleTap} />}
+      </Container>
     </Container>
+
   );
 }
 
