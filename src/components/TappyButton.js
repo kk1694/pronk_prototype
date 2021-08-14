@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import Button from "@material-ui/core/Button";
 import ButtonGroup from "@material-ui/core/ButtonGroup";
-import Grid from "@material-ui/core/Grid";
 
 function TappyButton(props) {
   const [numClicks, setNumClicks] = useState(0);
@@ -22,8 +21,9 @@ function TappyButton(props) {
       <Button
         className="Button"
         onClick={handleClick}
-        variant="contained"
-        style={{ fontSize: 18, minWidth: "300px", minHeight: "60px" }}
+        color="primary"
+        variant='outlined'
+        style={{ fontSize: 18, minWidth: "300px", minHeight: "60px"}}
       >
         {props.name}
       </Button>
@@ -32,7 +32,7 @@ function TappyButton(props) {
     return (
 
       <ButtonGroup color="primary" aria-label="outlined primary button group" style={{ fontSize: 18, minWidth: "300px", minHeight: "60px" }}>
-        <Button onClick={handleClick} style={{ fontSize: 18, minWidth: "75%"}}>Bookmark</Button>
+        <Button onClick={handleClick} style={{ fontSize: 18, minWidth: "75%"}}>{props.name}</Button>
         <Button onClick={handleClick} style={{ fontSize: 18, minWidth: "25%"}}> {numClicks}</Button>
       </ButtonGroup>
     );

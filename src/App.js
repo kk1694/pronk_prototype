@@ -1,30 +1,22 @@
 import './App.css';
-import React, {useState} from "react";
-import StartButton from './components/StartButton';
-import TappyButton from './components/TappyButton';
+import React from "react";
+import { ThemeProvider } from '@material-ui/core/styles';
+import { createTheme } from '@material-ui/core/styles';
+
+import TappyWindow from './components/TappyWindow';
+
+const theme = createTheme({
+
+})
 
 function App() {
 
-  const [running, setRunning] = useState(false);
-
-  const handleStartStop = () => {
-    setRunning(!running);
-  }
-
-  const handleTap = (name, time) => {
-    console.log(name, time)
-  }
-
   return (
+    <ThemeProvider theme={theme}>
     <div className="App">
-      <header className="App-header">
-        <StartButton onStartStop = {handleStartStop} running={running}/>
-
-        {running? 'App is running' : 'App is stopped'}
-
-        <TappyButton name = 'Bookmark' onButtonClick = {handleTap} />
-      </header>
+      <TappyWindow/>
     </div>
+    </ThemeProvider>
   );
 }
 
