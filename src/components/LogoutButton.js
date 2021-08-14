@@ -1,5 +1,7 @@
 
 import React from 'react';
+import Button from '@material-ui/core/Button';
+
 import { useAuth0 } from '@auth0/auth0-react';
 
 const LogoutButton = () => {
@@ -7,9 +9,7 @@ const LogoutButton = () => {
 
   return (
     isAuthenticated && (
-      <button onClick={() => logout()}>
-        Log Out
-      </button>
+        <Button color="inherit" onClick={() => logout()} >Logout</Button>
     )
   )
 }
