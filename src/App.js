@@ -12,12 +12,17 @@ import Dashboard from "./pages/Dashboard";
 import Create from "./pages/Create";
 import Layout from "./components/Layout";
 import ProtectedRoute from "./auth/protected-route";
+import PleaseLogin from "./components/PleaseLogin";
+
+import Loading from './components/Loading';
 
 function App() {
 
-  const { isLoading } = useAuth0();
+  const { isLoading, isAuthenticated } = useAuth0();
 
-  if (isLoading) return <div>Loading...</div>;
+  if (isLoading) return <Loading/>;
+
+  if (!isAuthenticated) return <PleaseLogin/>
 
   return (
     <BrowserRouter>
