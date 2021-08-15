@@ -13,7 +13,6 @@ const pleaseLogin = () => {
 
 const useStyles = makeStyles({
     root: {
-       display: 'flex'
     }
 })
 
@@ -25,7 +24,6 @@ function Dashboard() {
     return (
         
         <div className={classes.root}>
-            <PrimarySearchAppBar/>
             'Still todo'
             <Button onClick={() => history.push('/create')}>
                 Create new

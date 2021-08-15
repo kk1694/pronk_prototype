@@ -15,8 +15,7 @@ const useStyles = makeStyles((theme) => ({
     display: 'flex'
   },
   appBar: {
-    position: 'relative',
-    zIndex: 1400
+
   },
   menuButton: {
     marginRight: theme.spacing(2),
@@ -33,7 +32,6 @@ export default function ButtonAppBar() {
 
   const handleDrawerOpenClose = () => {
     setDrawerOpen(!drawerOpen);
-    console.log(drawerOpen)
   };
 
 
@@ -51,7 +49,7 @@ export default function ButtonAppBar() {
           <LogoutButton/>
         </Toolbar>
       </AppBar>
-      <ProjectBar open={drawerOpen}/>
+      <ProjectBar open={drawerOpen} handleClose={handleDrawerOpenClose}/>
     </div>
   );
 }
