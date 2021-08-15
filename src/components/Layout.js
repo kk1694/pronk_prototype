@@ -4,7 +4,6 @@ import PrimarySearchAppBar from "./PrimarySearchAppBar";
 
 const useStyles = makeStyles({
   page: {
-    background: "#f9f9f9",
   },
   root: {
   },
