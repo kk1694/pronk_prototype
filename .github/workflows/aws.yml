@@ -60,7 +60,7 @@ jobs:
         IMAGE_TAG: ${{ github.sha }}
         FLASK_SECRET_KEY: ${{ secrets.FLASK_SECRET_KEY }}
         REACT_APP_AUTH0_DOMAIN: ${{ secrets.REACT_APP_AUTH0_DOMAIN }}
-        REACT_APP_AUTH0_CLIENT_ID: {{ secrets.REACT_APP_AUTH0_CLIENT_ID }}
+        REACT_APP_AUTH0_CLIENT_ID: ${{ secrets.REACT_APP_AUTH0_CLIENT_ID }}
       run: |
         # Build a docker container and
         # push it to ECR so that it can
