@@ -60,7 +60,7 @@ jobs:
         IMAGE_TAG: ${{ github.sha }}
         FLASK_SECRET_KEY: ${{ secrets.FLASK_SECRET_KEY }}
         REACT_APP_AUTH0_DOMAIN: ${{ secrets.REACT_APP_AUTH0_DOMAIN }}
-        REACT_APP_AUTH0_CLIENT_ID: {{ secrets.REACT_APP_AUTH0_CLIENT_ID }}
+        REACT_APP_AUTH0_CLIENT_ID: ${{ secrets.REACT_APP_AUTH0_CLIENT_ID }}
       run: |
         # Build a docker container and
         # push it to ECR so that it can
@@ -71,9 +71,6 @@ jobs:
         docker-compose build --build-arg AWS_ACCESS_KEY_ID="${{ secrets.AWS_ACCESS_KEY_ID }}" \
             --build-arg AWS_SECRET_ACCESS_KEY="${{ secrets.AWS_SECRET_ACCESS_KEY }}" \
             --build-arg AWS_DEFAULT_REGION="${{ secrets.AWS_DEFAULT_REGION }}" \
-            --build-arg FLASK_SECRET_KEY= $FLASK_SECRET_KEY \
-            --build-arg REACT_APP_AUTH0_DOMAIN=$REACT_APP_AUTH0_DOMAIN \
-            --build-arg REACT_APP_AUTH0_CLIENT_ID=$REACT_APP_AUTH0_CLIENT_ID \
             -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
         echo "Done with build"
         docker-compose push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
