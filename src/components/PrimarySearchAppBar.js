@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
@@ -34,6 +34,14 @@ export default function ButtonAppBar() {
     setDrawerOpen(!drawerOpen);
   };
 
+  /// This is for the dummy flask integration
+  const [currentTime, setCurrentTime] = useState(0);
+
+  useEffect(() => {
+    fetch('/api/time').then(res => res.json()).then(data => {
+      setCurrentTime(data.time);
+    });
+  }, []);
 
   return (
     <div className={classes.root}>
@@ -43,7 +51,7 @@ export default function ButtonAppBar() {
             <MenuIcon />
           </IconButton>
           <Typography variant="h6" className={classes.title}>
-            Noki.ai
+            Noki.ai Current time is {currentTime}
           </Typography>
           <LoginButton/>
           <LogoutButton/>
