@@ -72,12 +72,20 @@ jobs:
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
         echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
 
+    - name: Fill in the new image ID in the Amazon ECS task definition (backend)
+      id: task-def-backend
+      uses: aws-actions/amazon-ecs-render-task-definition@v1
+      with:
+        task-definition: aws-task-definition.json
+        container-name: pronk-prototype-ecr
+        image: ${{ steps.build-image.outputs.image }}    
+
 
     - name: Build frontend
       id: pronk-prototype-frontend
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        ECR_REPOSITORY: aws-ecs-demo-ecr
+        ECR_REPOSITORY: pronk-prototype-frontend
         IMAGE_TAG: "frontend-${{ github.sha }}"
         REACT_APP_AUTH0_DOMAIN: ${{ secrets.REACT_APP_AUTH0_DOMAIN }}
         REACT_APP_AUTH0_CLIENT_ID: ${{ secrets.REACT_APP_AUTH0_CLIENT_ID }}
@@ -90,16 +98,16 @@ jobs:
             --build-arg AWS_DEFAULT_REGION="${{ secrets.AWS_DEFAULT_REGION }}" \
             --build-arg REACT_APP_AUTH0_DOMAIN=$REACT_APP_AUTH0_DOMAIN \
             --build-arg REACT_APP_AUTH0_CLIENT_ID=$REACT_APP_AUTH0_CLIENT_ID \
-            -f Dockerfile.frontend -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+            -f Dockerfile.client -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
         echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
 
     - name: Fill in the new image ID in the Amazon ECS task definition
-      id: task-def
+      id: task-def-frontend
       uses: aws-actions/amazon-ecs-render-task-definition@v1
       with:
         task-definition: aws-task-definition.json
-        container-name: pronk-prototype-ecr
+        container-name: pronk-prototype-frontend
         image: ${{ steps.build-image.outputs.image }}
 
     - name: Deploy Amazon ECS task definition
