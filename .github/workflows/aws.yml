@@ -78,11 +78,11 @@ jobs:
       with:
         task-definition: aws-task-definition.json
         container-name: pronk-prototype-ecr
-        image: ${{ steps.build-image.outputs.image }}    
+        image: ${{ steps.build-backend.outputs.image }}    
 
 
     - name: Build frontend
-      id: pronk-prototype-frontend
+      id: build-frontend
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         ECR_REPOSITORY: pronk-prototype-frontend
@@ -108,7 +108,7 @@ jobs:
       with:
         task-definition: aws-task-definition.json
         container-name: pronk-prototype-frontend
-        image: ${{ steps.build-image.outputs.image }}
+        image: ${{ steps.build-frontend.outputs.image }}
 
     - name: Deploy Amazon ECS task definition
       uses: aws-actions/amazon-ecs-deploy-task-definition@v1
