@@ -114,6 +114,6 @@ jobs:
       uses: aws-actions/amazon-ecs-deploy-task-definition@v1
       with:
         task-definition: aws-task-definition.json
-        service: pronk-prototype-service
+        service: pronk-prototype-service2
         cluster: pronk-prototype-cluster
         wait-for-service-stability: true
