@@ -97,12 +97,12 @@
     ],
     "placementConstraints": [],
     "memory": null,
-    "taskRoleArn": null,
+    "taskRoleArn": "arn:aws:iam::816855656798:role/pronk-aws-task-delete",
     "compatibilities": [
       "EXTERNAL",
       "EC2"
     ],
-    "taskDefinitionArn": "arn:aws:ecs:eu-west-2:816855656798:task-definition/pronk-prototype-task-definition:3",
+    "taskDefinitionArn": "arn:aws:ecs:eu-west-2:816855656798:task-definition/pronk-prototype-task-definition:8",
     "family": "pronk-prototype-task-definition",
     "requiresAttributes": [
       {
@@ -116,6 +116,12 @@
         "targetType": null,
         "value": null,
         "name": "com.amazonaws.ecs.capability.docker-remote-api.1.21"
+      },
+      {
+        "targetId": null,
+        "targetType": null,
+        "value": null,
+        "name": "com.amazonaws.ecs.capability.task-iam-role"
       }
     ],
     "pidMode": null,
@@ -124,7 +130,7 @@
     ],
     "networkMode": null,
     "cpu": null,
-    "revision": 3,
+    "revision": 8,
     "status": "ACTIVE",
     "inferenceAccelerators": null,
     "proxyConfiguration": null,
