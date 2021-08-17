@@ -1,4 +1,4 @@
-{
+  {
     "ipcMode": null,
     "executionRoleArn": null,
     "containerDefinitions": [
@@ -102,7 +102,7 @@
       "EXTERNAL",
       "EC2"
     ],
-    "taskDefinitionArn": "arn:aws:ecs:eu-west-2:816855656798:task-definition/pronk-prototype-task-definition:2",
+    "taskDefinitionArn": "arn:aws:ecs:eu-west-2:816855656798:task-definition/pronk-prototype-task-definition:3",
     "family": "pronk-prototype-task-definition",
     "requiresAttributes": [
       {
@@ -124,7 +124,7 @@
     ],
     "networkMode": null,
     "cpu": null,
-    "revision": 2,
+    "revision": 3,
     "status": "ACTIVE",
     "inferenceAccelerators": null,
     "proxyConfiguration": null,
