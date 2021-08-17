@@ -9,9 +9,9 @@
         "entryPoint": null,
         "portMappings": [
           {
-            "hostPort": 0,
+            "hostPort": 4500,
             "protocol": "tcp",
-            "containerPort": 5000
+            "containerPort": 4500
           }
         ],
         "command": null,
@@ -47,6 +47,52 @@
         "systemControls": null,
         "privileged": null,
         "name": "pronk-prototype-ecr"
+      },
+      {
+        "dnsSearchDomains": null,
+        "environmentFiles": null,
+        "logConfiguration": null,
+        "entryPoint": null,
+        "portMappings": [
+          {
+            "hostPort": 0,
+            "protocol": "tcp",
+            "containerPort": 5000
+          }
+        ],
+        "command": null,
+        "linuxParameters": null,
+        "cpu": 0,
+        "environment": [],
+        "resourceRequirements": null,
+        "ulimits": null,
+        "dnsServers": null,
+        "mountPoints": [],
+        "workingDirectory": null,
+        "secrets": null,
+        "dockerSecurityOptions": null,
+        "memory": null,
+        "memoryReservation": 128,
+        "volumesFrom": [],
+        "stopTimeout": null,
+        "image": "816855656798.dkr.ecr.eu-west-2.amazonaws.com/pronk-prototype-frontend",
+        "startTimeout": null,
+        "firelensConfiguration": null,
+        "dependsOn": null,
+        "disableNetworking": null,
+        "interactive": null,
+        "healthCheck": null,
+        "essential": true,
+        "links": null,
+        "hostname": null,
+        "extraHosts": null,
+        "pseudoTerminal": null,
+        "user": null,
+        "readonlyRootFilesystem": null,
+        "dockerLabels": null,
+        "systemControls": null,
+        "privileged": null,
+        "name": "pronk-prototype-frontend"
       }
     ],
     "placementConstraints": [],
@@ -56,7 +102,7 @@
       "EXTERNAL",
       "EC2"
     ],
-    "taskDefinitionArn": "arn:aws:ecs:eu-west-2:816855656798:task-definition/pronk-prototype-task-definition:1",
+    "taskDefinitionArn": "arn:aws:ecs:eu-west-2:816855656798:task-definition/pronk-prototype-task-definition:2",
     "family": "pronk-prototype-task-definition",
     "requiresAttributes": [
       {
@@ -78,7 +124,7 @@
     ],
     "networkMode": null,
     "cpu": null,
-    "revision": 1,
+    "revision": 2,
     "status": "ACTIVE",
     "inferenceAccelerators": null,
     "proxyConfiguration": null,
