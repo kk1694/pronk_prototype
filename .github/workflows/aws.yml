@@ -30,7 +30,7 @@ on:
   # run manually
   workflow_dispatch:
 
-name: Deploy Pronk prototype
+name: Deploy Noki prototype
 
 jobs:
   deploy:
@@ -57,8 +57,8 @@ jobs:
       id: build-backend
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        ECR_REPOSITORY: pronk-prototype-ecr
-        IMAGE_TAG: "backend-${{ github.sha }}"
+        ECR_REPOSITORY: noki_backend
+        IMAGE_TAG: "latest"
         FLASK_SECRET_KEY: ${{ secrets.FLASK_SECRET_KEY }}
       run: |
         # Build a docker container and
@@ -77,7 +77,7 @@ jobs:
       uses: aws-actions/amazon-ecs-render-task-definition@v1
       with:
         task-definition: aws-task-definition.json
-        container-name: pronk-prototype-ecr
+        container-name: noki_backend
         image: ${{ steps.build-backend.outputs.image }}    
 
 
@@ -85,8 +85,8 @@ jobs:
       id: build-frontend
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        ECR_REPOSITORY: pronk-prototype-frontend
-        IMAGE_TAG: "frontend-${{ github.sha }}"
+        ECR_REPOSITORY: noki_frontend
+        IMAGE_TAG: "latest"
         REACT_APP_AUTH0_DOMAIN: ${{ secrets.REACT_APP_AUTH0_DOMAIN }}
         REACT_APP_AUTH0_CLIENT_ID: ${{ secrets.REACT_APP_AUTH0_CLIENT_ID }}
       run: |
@@ -107,13 +107,13 @@ jobs:
       uses: aws-actions/amazon-ecs-render-task-definition@v1
       with:
         task-definition: aws-task-definition.json
-        container-name: pronk-prototype-frontend
+        container-name: noki_frontend
         image: ${{ steps.build-frontend.outputs.image }}
 
     - name: Deploy Amazon ECS task definition
       uses: aws-actions/amazon-ecs-deploy-task-definition@v1
       with:
         task-definition: aws-task-definition.json
-        service: pronk-prototype-service2
-        cluster: pronk-prototype-cluster
+        service: noki-frontend-service
+        cluster: noki-frontend-trial
         wait-for-service-stability: true
