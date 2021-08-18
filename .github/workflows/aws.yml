@@ -53,32 +53,32 @@ jobs:
       uses: aws-actions/amazon-ecr-login@v1
 
 
-    # - name: Build backend
-    #   id: build-backend
-    #   env:
-    #     ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-    #     ECR_REPOSITORY: pronk-prototype-ecr
-    #     IMAGE_TAG: "backend-${{ github.sha }}"
-    #     FLASK_SECRET_KEY: ${{ secrets.FLASK_SECRET_KEY }}
-    #   run: |
-    #     # Build a docker container and
-    #     # push it to ECR so that it can
-    #     # be deployed to ECS.
-    #     docker build --build-arg AWS_ACCESS_KEY_ID="${{ secrets.AWS_ACCESS_KEY_ID }}" \
-    #         --build-arg AWS_SECRET_ACCESS_KEY="${{ secrets.AWS_SECRET_ACCESS_KEY }}" \
-    #         --build-arg AWS_DEFAULT_REGION="${{ secrets.AWS_DEFAULT_REGION }}" \
-    #         --build-arg FLASK_SECRET_KEY="${{ secrets.FLASK_SECRET_KEY }}" \
-    #         -f Dockerfile.api -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-    #     docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-    #     echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+    - name: Build backend
+      id: build-backend
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        ECR_REPOSITORY: noki_backend
+        IMAGE_TAG: "latest"
+        FLASK_SECRET_KEY: ${{ secrets.FLASK_SECRET_KEY }}
+      run: |
+        # Build a docker container and
+        # push it to ECR so that it can
+        # be deployed to ECS.
+        docker build --build-arg AWS_ACCESS_KEY_ID="${{ secrets.AWS_ACCESS_KEY_ID }}" \
+            --build-arg AWS_SECRET_ACCESS_KEY="${{ secrets.AWS_SECRET_ACCESS_KEY }}" \
+            --build-arg AWS_DEFAULT_REGION="${{ secrets.AWS_DEFAULT_REGION }}" \
+            --build-arg FLASK_SECRET_KEY="${{ secrets.FLASK_SECRET_KEY }}" \
+            -f Dockerfile.api -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+        echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
 
-    # - name: Fill in the new image ID in the Amazon ECS task definition (backend)
-    #   id: task-def-backend
-    #   uses: aws-actions/amazon-ecs-render-task-definition@v1
-    #   with:
-    #     task-definition: aws-task-definition.json
-    #     container-name: pronk-prototype-ecr
-    #     image: ${{ steps.build-backend.outputs.image }}    
+    - name: Fill in the new image ID in the Amazon ECS task definition (backend)
+      id: task-def-backend
+      uses: aws-actions/amazon-ecs-render-task-definition@v1
+      with:
+        task-definition: aws-task-definition.json
+        container-name: noki_backend
+        image: ${{ steps.build-backend.outputs.image }}    
 
 
     - name: Build frontend
