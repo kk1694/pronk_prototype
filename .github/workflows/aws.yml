@@ -30,7 +30,7 @@ on:
   # run manually
   workflow_dispatch:
 
-name: Deploy Pronk prototype
+name: Deploy Noki prototype
 
 jobs:
   deploy:
@@ -53,39 +53,39 @@ jobs:
       uses: aws-actions/amazon-ecr-login@v1
 
 
-    - name: Build backend
-      id: build-backend
-      env:
-        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        ECR_REPOSITORY: pronk-prototype-ecr
-        IMAGE_TAG: "backend-${{ github.sha }}"
-        FLASK_SECRET_KEY: ${{ secrets.FLASK_SECRET_KEY }}
-      run: |
-        # Build a docker container and
-        # push it to ECR so that it can
-        # be deployed to ECS.
-        docker build --build-arg AWS_ACCESS_KEY_ID="${{ secrets.AWS_ACCESS_KEY_ID }}" \
-            --build-arg AWS_SECRET_ACCESS_KEY="${{ secrets.AWS_SECRET_ACCESS_KEY }}" \
-            --build-arg AWS_DEFAULT_REGION="${{ secrets.AWS_DEFAULT_REGION }}" \
-            --build-arg FLASK_SECRET_KEY="${{ secrets.FLASK_SECRET_KEY }}" \
-            -f Dockerfile.api -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-        echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+    # - name: Build backend
+    #   id: build-backend
+    #   env:
+    #     ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+    #     ECR_REPOSITORY: pronk-prototype-ecr
+    #     IMAGE_TAG: "backend-${{ github.sha }}"
+    #     FLASK_SECRET_KEY: ${{ secrets.FLASK_SECRET_KEY }}
+    #   run: |
+    #     # Build a docker container and
+    #     # push it to ECR so that it can
+    #     # be deployed to ECS.
+    #     docker build --build-arg AWS_ACCESS_KEY_ID="${{ secrets.AWS_ACCESS_KEY_ID }}" \
+    #         --build-arg AWS_SECRET_ACCESS_KEY="${{ secrets.AWS_SECRET_ACCESS_KEY }}" \
+    #         --build-arg AWS_DEFAULT_REGION="${{ secrets.AWS_DEFAULT_REGION }}" \
+    #         --build-arg FLASK_SECRET_KEY="${{ secrets.FLASK_SECRET_KEY }}" \
+    #         -f Dockerfile.api -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+    #     docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+    #     echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
 
-    - name: Fill in the new image ID in the Amazon ECS task definition (backend)
-      id: task-def-backend
-      uses: aws-actions/amazon-ecs-render-task-definition@v1
-      with:
-        task-definition: aws-task-definition.json
-        container-name: pronk-prototype-ecr
-        image: ${{ steps.build-backend.outputs.image }}    
+    # - name: Fill in the new image ID in the Amazon ECS task definition (backend)
+    #   id: task-def-backend
+    #   uses: aws-actions/amazon-ecs-render-task-definition@v1
+    #   with:
+    #     task-definition: aws-task-definition.json
+    #     container-name: pronk-prototype-ecr
+    #     image: ${{ steps.build-backend.outputs.image }}    
 
 
     - name: Build frontend
       id: build-frontend
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        ECR_REPOSITORY: pronk-prototype-frontend
+        ECR_REPOSITORY: noki_frontend
         IMAGE_TAG: "frontend-${{ github.sha }}"
         REACT_APP_AUTH0_DOMAIN: ${{ secrets.REACT_APP_AUTH0_DOMAIN }}
         REACT_APP_AUTH0_CLIENT_ID: ${{ secrets.REACT_APP_AUTH0_CLIENT_ID }}
@@ -107,13 +107,13 @@ jobs:
       uses: aws-actions/amazon-ecs-render-task-definition@v1
       with:
         task-definition: aws-task-definition.json
-        container-name: pronk-prototype-frontend
+        container-name: noki_frontend
         image: ${{ steps.build-frontend.outputs.image }}
 
     - name: Deploy Amazon ECS task definition
       uses: aws-actions/amazon-ecs-deploy-task-definition@v1
       with:
         task-definition: aws-task-definition.json
-        service: pronk-prototype-service2
-        cluster: pronk-prototype-cluster
+        service: noki-frontend-service
+        cluster: noki-frontend-trial
         wait-for-service-stability: true
