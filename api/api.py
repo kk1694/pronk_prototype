@@ -18,16 +18,18 @@ db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
 
-class User(db.Model):
-    __tablename__ = 'user'
+class Users(db.Model):
+    __tablename__ = 'users'
 
-    id = db.Column(db.String(63), primary_key=True)
+    id = db.Column(db.Integer, primary_key=True)
+    auth_id = db.Column(db.String(63), unique=True, nullable=False)
     given_name = db.Column(db.String(255))
     family_name = db.Column(db.String(255))
     email = db.Column(db.String(255))
 
-    def __init__(self, id:str, given_name: str, family_name: str, email: str):
+    def __init__(self, id: int, auth_id: str, given_name: str, family_name: str, email: str):
         self.id = id
+        self.auth_id = auth_id
         self.given_name = given_name
         self.family_name = last_name
         self.email = email
