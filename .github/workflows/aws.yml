@@ -85,7 +85,7 @@ jobs:
       id: build-frontend
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        ECR_REPOSITORY: noki_visible
+        ECR_REPOSITORY: noki_frontend
         IMAGE_TAG: "frontend-${{ github.sha }}"
         REACT_APP_AUTH0_DOMAIN: ${{ secrets.REACT_APP_AUTH0_DOMAIN }}
         REACT_APP_AUTH0_CLIENT_ID: ${{ secrets.REACT_APP_AUTH0_CLIENT_ID }}
@@ -107,7 +107,7 @@ jobs:
       uses: aws-actions/amazon-ecs-render-task-definition@v1
       with:
         task-definition: aws-task-definition.json
-        container-name: noki_visible
+        container-name: noki_frontend
         image: ${{ steps.build-frontend.outputs.image }}
 
     - name: Deploy Amazon ECS task definition
