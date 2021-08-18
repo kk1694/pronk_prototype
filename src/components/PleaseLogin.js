@@ -14,8 +14,19 @@ function PleaseLogin() {
     });
   }, []);
 
+  const [userList, setUserList] = useState('no luck');
+
+  useEffect(() => {
+    fetch('/api/list_users').then(res => res.json()).then(data => {
+      setUserList(JSON.stringify(data));
+    });
+  });
+
   return (
     <Container maxWidth="sm" justify="center" align="center">
+
+      Users: {userList}
+
       <Container style={{ marginTop: "20vh" }}>
         <Typography variant="h2" gutterBottom>
           Noki.ai
