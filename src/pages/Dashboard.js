@@ -1,3 +1,4 @@
+import { useAuth0 } from "@auth0/auth0-react";
 import { Container, Divider, Grid, makeStyles } from "@material-ui/core";
 import React from "react";
 import { useHistory } from "react-router-dom";
@@ -10,6 +11,8 @@ const useStyles = makeStyles({
 function Dashboard() {
   const history = useHistory();
   const classes = useStyles();
+
+  const {user} = useAuth0();
 
   const sampleData = [
     {
@@ -53,6 +56,15 @@ function Dashboard() {
   return (
     <div className={classes.dashboardBody}>
       <Container>
+
+      {JSON.stringify(user, null, 2)}
+
+      Sub: {JSON.stringify(user.sub, null, 2)}
+
+      {/* Name: {user.name}
+
+      Id: {JSON.stringify(user.identities, null, 2)} */}
+
         <Grid container spacing={3}>
           <Grid item xs={12} sm={6} md={3} l={2}>
             <RecordingCard
