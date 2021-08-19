@@ -32,7 +32,7 @@ function PleaseLogin() {
       <Container style={{ marginTop: "20vh" }}>
         <Typography variant="h2" gutterBottom>
           Noki.ai
-          domain: {domain.substr(0, 5)}
+          domain: {(domain) ? 'not null' : 'null'}
         </Typography>
         <Typography variant="body" gutterBottom>
           Please log in to continue using the app. 
