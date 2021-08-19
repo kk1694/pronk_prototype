@@ -22,6 +22,8 @@ function PleaseLogin() {
     });
   });
 
+  const domain = process.env.REACT_APP_AUTH0_DOMAIN;
+
   return (
     <Container maxWidth="sm" justify="center" align="center">
 
@@ -30,6 +32,7 @@ function PleaseLogin() {
       <Container style={{ marginTop: "20vh" }}>
         <Typography variant="h2" gutterBottom>
           Noki.ai
+          domain: {domain.substr(0, 5)}
         </Typography>
         <Typography variant="body" gutterBottom>
           Please log in to continue using the app. 
