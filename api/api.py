@@ -41,7 +41,6 @@ class Users(db.Model):
     def __repr__(self):
         return f'Name: {self.given_name} {self.family_name} email: {self.email}'
 
-
 class Projects(db.Model):
     __tablename__ = 'projects'
 
@@ -52,7 +51,6 @@ class Projects(db.Model):
     project_name = db.Column(db.String(256), nullable=False)
 
     projects = db.relationship('Notes', backref='project', lazy=True)
-
 
 class Notes(db.Model):
 
@@ -70,7 +68,6 @@ class Notes(db.Model):
 
     notes = db.relationship('Tags', backref='note', lazy=True)
 
-
 class Tags(db.Model):
 
     __tablename__ = 'tags'
@@ -85,23 +82,11 @@ class Tags(db.Model):
     time = db.Column(db.Float, nullable=False)
 
 
-
-
-
-
-
-
-
-
-
-
-
-
 @app.route('/api/time')
 def get_current_time():
-    return {'time': time.time()}
+    return {'time': time.time(), "env":os.getenv("POSTGRES_USER")}
 
 @app.route('/api/list_users')
 def list_db():
-    users = User.query.all()
+    users = Users.query.all()
     return {'out': '\n'.join([str(user) for user in users])}
