@@ -1,6 +1,6 @@
 {
   "ipcMode": null,
-  "executionRoleArn": null,
+  "executionRoleArn": "arn:aws:iam::816855656798:role/noki-ecs-role",
   "containerDefinitions": [
     {
       "dnsSearchDomains": null,
@@ -102,7 +102,7 @@
     "EXTERNAL",
     "EC2"
   ],
-  "taskDefinitionArn": "arn:aws:ecs:eu-west-2:816855656798:task-definition/noki-app-task-definition:1",
+  "taskDefinitionArn": "arn:aws:ecs:eu-west-2:816855656798:task-definition/noki-app-task-definition:7",
   "family": "noki-app-task-definition",
   "requiresAttributes": [
     {
@@ -122,6 +122,12 @@
       "targetType": null,
       "value": null,
       "name": "com.amazonaws.ecs.capability.task-iam-role"
+    },
+    {
+      "targetId": null,
+      "targetType": null,
+      "value": null,
+      "name": "ecs.capability.execution-role-ecr-pull"
     }
   ],
   "pidMode": null,
@@ -130,7 +136,7 @@
   ],
   "networkMode": null,
   "cpu": null,
-  "revision": 1,
+  "revision": 7,
   "status": "ACTIVE",
   "inferenceAccelerators": null,
   "proxyConfiguration": null,
