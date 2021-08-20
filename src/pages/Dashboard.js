@@ -1,6 +1,7 @@
 import { useAuth0 } from "@auth0/auth0-react";
 import { Container, Divider, Grid, makeStyles } from "@material-ui/core";
 import React, {useEffect} from "react";
+import { useState } from "react";
 import { useHistory } from "react-router-dom";
 import RecordingCard from "../components/RecordingCard";
 
@@ -14,6 +15,8 @@ function Dashboard() {
 
   const {user} = useAuth0();
 
+  const [projectID, setProjectID] = useState('');
+
   useEffect(() => {
     fetch('/api/opened_dashboard', {
       method: "POST", // *GET, POST, PUT, DELETE, etc.
@@ -22,7 +25,10 @@ function Dashboard() {
       },
       body: JSON.stringify(user), // body data type must match "Content-Type" header
   }).then(response => {
-    console.log(response)
+    return response.json();
+  }).then(data => {
+    console.log(data)
+    setProjectID(data.project_id)
   }).catch(error => {
     console.log('There was an error: ', error)
   })
@@ -71,9 +77,11 @@ function Dashboard() {
     <div className={classes.dashboardBody}>
       <Container>
 
-      {JSON.stringify(user, null, 2)}
+        project: {projectID}
 
-      Sub: {JSON.stringify(user.sub, null, 2)}
+      {/* {JSON.stringify(user, null, 2)}
+
+      Sub: {JSON.stringify(user.sub, null, 2)} */}
 
       {/* Name: {user.name}
 
@@ -88,7 +96,7 @@ function Dashboard() {
                 subtitle: "Go to recording screen",
                 description: "Make notes for a new recording",
               }}
-              onClick={() => history.push({pathname: "/create", state: {project_id: 'asdfasdf'}})}
+              onClick={() => history.push({pathname: "/create", state: {project_id: projectID}})}
             />
           </Grid>
 

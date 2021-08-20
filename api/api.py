@@ -37,7 +37,7 @@ class Users(db.Model):
     email = db.Column(db.String(256))
     first_login = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
-    users = db.relationship('Projects', backref='user', lazy=True)
+    projects = db.relationship('Projects', backref='user', lazy=True)
 
     def __repr__(self):
         return f'Name: {self.given_name} {self.family_name} email: {self.email}'
@@ -51,7 +51,7 @@ class Projects(db.Model):
     date_created = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     project_name = db.Column(db.String(256), nullable=False)
 
-    projects = db.relationship('Notes', backref='project', lazy=True)
+    notes = db.relationship('Notes', backref='project', lazy=True)
 
 class Notes(db.Model):
 
@@ -67,7 +67,7 @@ class Notes(db.Model):
     video_location = db.Column(db.String(32))
     transcript_location = db.Column(db.String(32))
 
-    notes = db.relationship('Tags', backref='note', lazy=True)
+    tags = db.relationship('Tags', backref='note', lazy=True)
 
 class Tags(db.Model):
 
@@ -109,6 +109,13 @@ def create_new_user(auth_id, given_name, family_name, email):
     db.session.commit()
     print("user created!")
 
+def get_default_project_id(user):
+    projects = user.projects
+
+    assert len(projects) == 1, "Right now there should be exactly 1 project: default!"
+
+    return projects[0].id
+
 @app.route('/api/opened_dashboard', methods = ['POST'])
 def openeed_dashboard():
     if request.method != 'POST':
@@ -128,8 +135,9 @@ def openeed_dashboard():
         assert check_keys(request_data, ['sub', 'given_name', 'family_name', 'email'])
         create_new_user(request_data['sub'], request_data['given_name'], request_data['family_name'], request_data['email'])
         
+    print(f'Returning: {get_default_project_id(user)}')
 
-    return 'OK'
+    return {'project_id': get_default_project_id(user)}
 
 
 @app.route('/api/create_new_note', methods = ['POST'])
@@ -139,17 +147,6 @@ def create_new_note():
     
     request_data = request.get_json()
 
-    print(request_data)
-
-    # user = Users.query.filter_by(auth_id=request_data['sub']).first()
-
-    # print(f"user: {user}")
-
-    # if user:
-    #     print("User exists!")
-    # else:
-    #     assert check_keys(request_data, ['sub', 'given_name', 'family_name', 'email'])
-    #     create_new_user(request_data['sub'], request_data['given_name'], request_data['family_name'], request_data['email'])
-        
+    print(request_data)        
 
     return 'OK'

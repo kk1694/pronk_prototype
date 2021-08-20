@@ -1,13 +1,13 @@
 import { Container } from "@material-ui/core";
 import React, { useState } from "react";
-import { useHistory, useLocation } from "react-router-dom";
+import { useHistory } from "react-router-dom";
 
 import StartButton from "./StartButton";
 import TappyList from "./TappyList";
 import TappyComment from "./TappyComment";
 
 
-function TappyWindow() {
+function TappyWindow(props) {
   const buttonList = [
     "Bookmark",
     "Positive",
@@ -18,7 +18,6 @@ function TappyWindow() {
 
   const history = useHistory();
 
-  const location = useLocation();
 
   const tapInfoInit = buttonList.map( category => {
     return ({'category': category,
@@ -47,7 +46,7 @@ function TappyWindow() {
         headers: {
             "Content-Type": "application/json",
         },
-        body: JSON.stringify({'project': location.state.project_id, "data": tapInfo, 
+        body: JSON.stringify({'project': props.project_id, "data": tapInfo, 
           'start_time': startTime,
           'end_time': new Date().toISOString()}),
     }).then(response => {
@@ -97,7 +96,7 @@ function TappyWindow() {
 
       <Container>
 
-        {JSON.stringify(location.state)}
+        {JSON.stringify(props.project_id)}
 
       </Container>
 
