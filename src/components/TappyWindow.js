@@ -109,6 +109,7 @@ function TappyWindow() {
             handleTap={handleTap}
             buttonList={buttonList}
             numClicks={numClicks}
+            disabled={!running}
           />
         )}
       </Container>
