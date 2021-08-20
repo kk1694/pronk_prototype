@@ -130,3 +130,26 @@ def openeed_dashboard():
         
 
     return 'OK'
+
+
+@app.route('/api/create_new_note', methods = ['POST'])
+def create_new_note():
+    if request.method != 'POST':
+        print(f'Request method not POST, but {request.method}!!!')
+    
+    request_data = request.get_json()
+
+    print(request_data)
+
+    # user = Users.query.filter_by(auth_id=request_data['sub']).first()
+
+    # print(f"user: {user}")
+
+    # if user:
+    #     print("User exists!")
+    # else:
+    #     assert check_keys(request_data, ['sub', 'given_name', 'family_name', 'email'])
+    #     create_new_user(request_data['sub'], request_data['given_name'], request_data['family_name'], request_data['email'])
+        
+
+    return 'OK'

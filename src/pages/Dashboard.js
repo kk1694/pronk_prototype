@@ -17,7 +17,6 @@ function Dashboard() {
   useEffect(() => {
     fetch('/api/opened_dashboard', {
       method: "POST", // *GET, POST, PUT, DELETE, etc.
-      credentials: "same-origin", // include, *same-origin, omit
       headers: {
           "Content-Type": "application/json",
       },
@@ -89,7 +88,7 @@ function Dashboard() {
                 subtitle: "Go to recording screen",
                 description: "Make notes for a new recording",
               }}
-              onClick={() => history.push("/create")}
+              onClick={() => history.push({pathname: "/create", state: {project_id: 'asdfasdf'}})}
             />
           </Grid>
 
