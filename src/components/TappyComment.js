@@ -8,6 +8,8 @@ function TappyComment(props) {
 
   const handleSubmit = (e) => {
     props.handleComment({
+      id: props.id,
+      time: props.time,
       comment: comment,
     });
   };

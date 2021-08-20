@@ -34,7 +34,7 @@ function StartButton(props) {
         //variant="contained"
         //style={{ fontSize: 24, minWidth: "300px", minHeight: "60px" }}
       >
-        {props.running? 'Start' : 'Stop'}
+        {props.running? 'Stop' : 'Start'}
       </Button>
   );
 }
