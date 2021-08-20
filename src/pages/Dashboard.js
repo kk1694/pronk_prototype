@@ -1,6 +1,6 @@
 import { useAuth0 } from "@auth0/auth0-react";
 import { Container, Divider, Grid, makeStyles } from "@material-ui/core";
-import React from "react";
+import React, {useEffect} from "react";
 import { useHistory } from "react-router-dom";
 import RecordingCard from "../components/RecordingCard";
 
@@ -13,6 +13,21 @@ function Dashboard() {
   const classes = useStyles();
 
   const {user} = useAuth0();
+
+  useEffect(() => {
+    fetch('/api/opened_dashboard', {
+      method: "POST", // *GET, POST, PUT, DELETE, etc.
+      credentials: "same-origin", // include, *same-origin, omit
+      headers: {
+          "Content-Type": "application/json",
+      },
+      body: JSON.stringify(user), // body data type must match "Content-Type" header
+  }).then(response => {
+    console.log(response)
+  }).catch(error => {
+    console.log('There was an error: ', error)
+  })
+  }, [])
 
   const sampleData = [
     {

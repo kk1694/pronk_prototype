@@ -2,6 +2,7 @@ import os
 import time
 from datetime import datetime
 from flask import Flask
+from flask import request
 import uuid
 
 from dotenv import load_dotenv
@@ -90,3 +91,42 @@ def get_current_time():
 def list_db():
     users = Users.query.all()
     return {'out': '\n'.join([str(user) for user in users])}
+
+def check_keys(data, keys):
+    datakeys = data.keys()
+    for k in keys:
+        if (k not in datakeys) or (len(data[k]) == 0):
+            print(f'{k} not found in object {data}! or is empty!')
+            return False
+    return True
+
+def create_new_user(auth_id, given_name, family_name, email):
+    user = Users(auth_id=auth_id, given_name=given_name,
+                     family_name=family_name, email=email)
+    project = Projects(user=user, project_name="Default")
+    db.session.add(user)
+    db.session.add(project)
+    db.session.commit()
+    print("user created!")
+
+@app.route('/api/opened_dashboard', methods = ['POST'])
+def openeed_dashboard():
+    if request.method != 'POST':
+        print(f'Request method not POST, but {request.method}!!!')
+    
+    request_data = request.get_json()
+
+    print(request_data)
+
+    user = Users.query.filter_by(auth_id=request_data['sub']).first()
+
+    print(f"user: {user}")
+
+    if user:
+        print("User exists!")
+    else:
+        assert check_keys(request_data, ['sub', 'given_name', 'family_name', 'email'])
+        create_new_user(request_data['sub'], request_data['given_name'], request_data['family_name'], request_data['email'])
+        
+
+    return 'OK'
