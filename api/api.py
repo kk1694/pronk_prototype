@@ -193,4 +193,34 @@ def create_new_note():
 
     _create_new_note(request_data['project_id'], request_data['data'], request_data['start_time'], request_data['end_time'])
 
-    return {'text': 'Note successfully created!'}
+    return {'status': 'Note successfully created!'}
+
+
+
+@app.route('/api/get_notes/<project_id>', methods = ['GET'])
+def get_notes(project_id):
+    
+    project = Projects.query.filter_by(id=project_id).first()
+
+    print(f"returning notes for {project}")
+
+    if not project:
+        return {'status': 'Did not recognize project ID', 'note_list':[]}
+
+    notes = project.notes
+
+    out = []
+
+    for i, note in enumerate(notes):
+        _temp = {'id': i, 'title': "TODO"}
+        _temp['description'] = note.description
+        _temp['note_id'] = note.id
+        _temp['subtitle'] = note.recording_start.strftime("%Y / %m / %d")
+
+        out.append(_temp)
+    
+    print(f'returning {out}')
+
+    return {'status': 'Success', 'note_list': out}
+
+
