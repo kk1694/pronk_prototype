@@ -20,7 +20,7 @@ function PleaseLogin() {
     fetch('/api/list_users').then(res => res.json()).then(data => {
       setUserList(JSON.stringify(data));
     });
-  });
+  }, []);
 
   const domain = process.env.REACT_APP_AUTH0_DOMAIN;
 

@@ -9,6 +9,7 @@ function TappyList(props) {
         onButtonClick={props.handleTap}
         name={buttonName}
         id={index}
+        disabled={props.disabled}
         numClicks={props.numClicks[index]}
       />
     </Container>

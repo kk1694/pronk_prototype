@@ -37,6 +37,7 @@ function TappyButton(props) {
       <Button
         className={`${buttonStyles.root} ${buttonStyles.single}`}
         onClick={handleClick}
+        disabled={props.disabled}
         color="primary"
         variant="outlined"
       >
@@ -53,6 +54,7 @@ function TappyButton(props) {
         <Button
           className={buttonStyles.root}
           onClick={handleClick}
+          disabled={props.disabled}
           style={{ minWidth: "75%" }}
         >
           {props.name}
@@ -60,6 +62,7 @@ function TappyButton(props) {
         <Button
           className={buttonStyles.root}
           onClick={handleClick}
+          disabled={props.disabled}
           style={{ minWidth: "25%" }}
         >
           {" "}
