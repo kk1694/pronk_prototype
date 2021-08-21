@@ -46,7 +46,7 @@ function TappyWindow(props) {
         headers: {
             "Content-Type": "application/json",
         },
-        body: JSON.stringify({'project': props.project_id, "data": tapInfo, 
+        body: JSON.stringify({'project_id': props.project_id, "data": tapInfo, 
           'start_time': startTime,
           'end_time': new Date().toISOString()}),
     }).then(response => {

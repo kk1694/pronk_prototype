@@ -76,7 +76,6 @@ class Tags(db.Model):
     id = db.Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     note_id =  db.Column(UUID(as_uuid=True), db.ForeignKey('notes.id'), nullable=False)
 
-
     date_created = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     category = db.Column(db.String(32), nullable=False)
     comment = db.Column(db.Text)
@@ -102,7 +101,7 @@ def check_keys(data, keys):
 
 def create_new_user(auth_id, given_name, family_name, email):
     user = Users(auth_id=auth_id, given_name=given_name,
-                     family_name=family_name, email=email)
+                 family_name=family_name, email=email)
     project = Projects(user=user, project_name="Default")
     db.session.add(user)
     db.session.add(project)
@@ -140,6 +139,47 @@ def openeed_dashboard():
     return {'project_id': get_default_project_id(user)}
 
 
+def _create_new_note(project_id, tap_data, start_time_str, end_time_str):
+
+    project = Projects.query.filter_by(id=project_id).first()
+
+    start_time = datetime.strptime(start_time_str, "%Y-%m-%dT%H:%M:%S.%fZ")
+    end_time = datetime.strptime(end_time_str, "%Y-%m-%dT%H:%M:%S.%fZ")
+
+    note = Notes(project=project, recording_start=start_time, recording_stop=end_time)
+    db.session.add(note)
+
+    print(f"Collecting tap info for {len(tap_data)} categories")
+
+    tags = []
+
+    for row in tap_data:
+
+        category, tap_times, comments = row['category'], row['tap_times'], row['comments']
+
+        n = len(tap_times)
+
+        assert n == len(comments), \
+            f"Tap time length {n} and comment lenght {len(comments)} does not match!"
+        
+        if n == 0: 
+            continue
+
+        for (tap_time, comment) in zip(tap_times, comments):
+            print("Adding tap at {tap_time} with comment {comment}")
+
+            tap_ts = datetime.strptime(tap_time, "%Y-%m-%dT%H:%M:%S.%fZ")
+
+            tap_time = (tap_ts - start_time).total_seconds()
+
+            print(f"Tap at {tap_time}")
+
+            db.session.add(Tags(note=note, category=category, time=tap_time, comment=comment))
+            print('Tap added')
+
+    db.session.commit()
+
+
 @app.route('/api/create_new_note', methods = ['POST'])
 def create_new_note():
     if request.method != 'POST':
@@ -147,6 +187,10 @@ def create_new_note():
     
     request_data = request.get_json()
 
-    print(request_data)        
+    assert check_keys(request_data, ['project_id', 'start_time', 'end_time', 'data'])
 
-    return 'OK'
+    print(request_data)
+
+    _create_new_note(request_data['project_id'], request_data['data'], request_data['start_time'], request_data['end_time'])
+
+    return {'text': 'Note successfully created!'}
