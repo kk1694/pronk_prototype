@@ -61,45 +61,6 @@ function Dashboard() {
     }
   }, [projectID]);
 
-  const sampleData = [
-    {
-      id: 6,
-      title: "example ",
-      subtitle: "2020 / 08 / 16",
-      description: "asdfasdfkjlkjlkajkdsf",
-    },
-    {
-      id: 1,
-      title: "example ",
-      subtitle: "2020 / 08 / 16",
-      description: "asdfasdfkjlkjlkajkdsf",
-    },
-    {
-      id: 2,
-      title: "example ",
-      subtitle: "2020 / 08 / 16",
-      description: "asdfasdfkjlkjlkajkdsf",
-    },
-    {
-      id: 3,
-      title: "example ",
-      subtitle: "2020 / 08 / 16",
-      description: "asdfasdfkjlkjlkajkdsf",
-    },
-    {
-      id: 4,
-      title: "example ",
-      subtitle: "2020 / 08 / 16",
-      description: "asdfasdfkjlkjlkajkdsf",
-    },
-    {
-      id: 5,
-      title: "example ",
-      subtitle: "2020 / 08 / 16",
-      description: "asdfasdfkjlkjlkajkdsf",
-    },
-  ];
-
   return (
     <div className={classes.dashboardBody}>
       <Container>
@@ -132,7 +93,12 @@ function Dashboard() {
             <Grid item key={carddata.id} xs={12} sm={6} md={3} l={2}>
               <RecordingCard
                 carddata={carddata}
-                onClick={() => alert("TODO")}
+                onClick={() =>
+                  history.push({
+                    pathname: "/note",
+                    state: { project_id: projectID, note_data: carddata },
+                  })
+                }
               />
             </Grid>
           ))}
