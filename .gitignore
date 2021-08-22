@@ -5,6 +5,7 @@
 # python relate
 venv
 __pycache__
+nbs
 
 # dependencies
 /node_modules

@@ -11,8 +11,28 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from sqlalchemy.dialects.postgresql import UUID
 
+import boto3
+from botocore.config import Config
+
+
 env_loaded = load_dotenv()
 print(f'.env file loaded: {env_loaded}')
+
+my_config = Config(
+    region_name = 'eu-west-2',
+    signature_version = 's3v4',
+    retries = {
+        'max_attempts': 10,
+    },
+    s3={'addressing_style': 'path'},
+)
+
+VIDEO_BUCKET = 'pronk-videos'
+
+s3_client = boto3.client('s3',config=my_config,
+                         aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
+                         aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY")
+)
 
 app = Flask(__name__)
 
@@ -64,8 +84,8 @@ class Notes(db.Model):
     description = db.Column(db.Text)
     recording_start = db.Column(db.DateTime, nullable=False)
     recording_stop = db.Column(db.DateTime, nullable=False)
-    video_location = db.Column(db.String(32))
-    transcript_location = db.Column(db.String(32))
+    video_location = db.Column(db.String(50))
+    transcript_location = db.Column(db.String(50))
 
     tags = db.relationship('Tags', backref='note', lazy=True)
 
@@ -224,15 +244,45 @@ def get_notes(project_id):
     return {'status': 'Success', 'note_list': out}
 
 
+def generate_presigned_url(object_name, bucket=VIDEO_BUCKET):
+    url = s3_client.generate_presigned_url(
+        'get_object',
+        Params={'Bucket': bucket, 'Key': object_name},
+        ExpiresIn=604800,
+        HttpMethod=None
+    )
+    return url
+
+def process_video(file, note_id):
+
+    fname = str(uuid.uuid4()) + ".mp4"
+    file.save(fname)
+
+    note = Notes.query.filter_by(id=note_id).first()
+
+    s3_client.upload_file(fname, VIDEO_BUCKET, fname)
+
+    url = generate_presigned_url(fname)
+
+    print(f"generated video url at: {url}")
+
+    note.video_location = fname
+    db.session.commit()
+
+    return url
+
+
 
 @app.route('/api/upload', methods = ['POST'])
 def upload_file():
     ##file = request.files['file']
     print(request)
     print(request.files)
-    check_keys(request.files, 'file')
-    file = request.files["file"]
-    file.save('example.mp4')
+    #check_keys(request.files, ['file', 'note_id'])
+
     #import pdb; pdb.set_trace();
-    return {'status':'Sucess'}
+    print(f"note id: {request.form['note_id']}")
+    url = process_video(request.files["file"], request.form['note_id'])
+
+    return {'status':'Sucess', 'url': url}
 

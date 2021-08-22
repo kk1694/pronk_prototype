@@ -54,7 +54,8 @@ function Note() {
 
             <Divider></Divider>
 
-             <FileUpload></FileUpload>
+              Note ID: {noteID}
+             <FileUpload noteID = {noteID}></FileUpload>
 
           </Grid>
           <Grid element xs={6}>
