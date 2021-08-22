@@ -1,8 +1,10 @@
 import { useAuth0 } from "@auth0/auth0-react";
 import {
+  Button,
   Container,
   Divider,
   Grid,
+  IconButton,
   makeStyles,
   Typography,
 } from "@material-ui/core";
@@ -10,9 +12,18 @@ import React, { useEffect } from "react";
 import { useState } from "react";
 import { useHistory, useLocation } from "react-router-dom";
 import RecordingCard from "../components/RecordingCard";
+import CloudUploadIcon from "@material-ui/icons/CloudUpload";
 
 const useStyles = makeStyles({
   dashboardBody: { marginTop: 30 },
+
+  uploadButtonArea: {
+    width: 400,
+    height: 400,
+  },
+
+  uploadButton:
+  { fontSize: 200 }
 });
 
 function Note() {
@@ -27,12 +38,34 @@ function Note() {
   const [title, setTitle] = useState(location.state.note_data.title);
   const [desc, setDesc] = useState(location.state.note_data.description);
 
-
   return (
     <div className={classes.dashboardBody}>
       <Container>
-        <Typography variant="h1">{title}</Typography>
-        project: {projectID}
+        <Grid container spacing={3}>
+          <Grid element xs={6}>
+            <Typography variant="h1">{title}</Typography>
+
+            <Typography variant="subtitle">{subtitle}</Typography>
+
+            <Divider></Divider>
+
+            <IconButton
+              edge="start"
+              className={classes.uploadButtonArea}
+              color="inherit"
+              aria-label="menu"
+              onClick={() => {
+                alert("todo");
+              }}
+            >
+              <CloudUploadIcon className={classes.uploadButton}/>
+            </IconButton>
+            <Typography variant="h5">Please upload your recordings</Typography>
+          </Grid>
+          <Grid element xs={6}>
+            TODO add tags!
+          </Grid>
+        </Grid>
       </Container>
     </div>
   );
