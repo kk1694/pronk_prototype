@@ -224,3 +224,15 @@ def get_notes(project_id):
     return {'status': 'Success', 'note_list': out}
 
 
+
+@app.route('/api/upload', methods = ['POST'])
+def upload_file():
+    ##file = request.files['file']
+    print(request)
+    print(request.files)
+    check_keys(request.files, 'file')
+    file = request.files["file"]
+    file.save('example.mp4')
+    #import pdb; pdb.set_trace();
+    return {'status':'Sucess'}
+

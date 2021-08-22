@@ -13,6 +13,8 @@ import { useState } from "react";
 import { useHistory, useLocation } from "react-router-dom";
 import RecordingCard from "../components/RecordingCard";
 import CloudUploadIcon from "@material-ui/icons/CloudUpload";
+import { DropzoneArea } from "material-ui-dropzone";
+import FileUpload from "../components/FileUpload";
 
 const useStyles = makeStyles({
   dashboardBody: { marginTop: 30 },
@@ -22,9 +24,10 @@ const useStyles = makeStyles({
     height: 400,
   },
 
-  uploadButton:
-  { fontSize: 200 }
+  uploadButton: { fontSize: 200 },
 });
+
+
 
 function Note() {
   const location = useLocation();
@@ -38,6 +41,8 @@ function Note() {
   const [title, setTitle] = useState(location.state.note_data.title);
   const [desc, setDesc] = useState(location.state.note_data.description);
 
+  
+
   return (
     <div className={classes.dashboardBody}>
       <Container>
@@ -49,18 +54,8 @@ function Note() {
 
             <Divider></Divider>
 
-            <IconButton
-              edge="start"
-              className={classes.uploadButtonArea}
-              color="inherit"
-              aria-label="menu"
-              onClick={() => {
-                alert("todo");
-              }}
-            >
-              <CloudUploadIcon className={classes.uploadButton}/>
-            </IconButton>
-            <Typography variant="h5">Please upload your recordings</Typography>
+             <FileUpload></FileUpload>
+
           </Grid>
           <Grid element xs={6}>
             TODO add tags!
