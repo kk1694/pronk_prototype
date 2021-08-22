@@ -85,7 +85,7 @@ class Notes(db.Model):
     recording_start = db.Column(db.DateTime, nullable=False)
     recording_stop = db.Column(db.DateTime, nullable=False)
     video_location = db.Column(db.String(50))
-    transcript_location = db.Column(db.String(50))
+    transcripted = db.Column(db.Boolean, default=False)
 
     tags = db.relationship('Tags', backref='note', lazy=True)
 
