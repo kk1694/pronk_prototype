@@ -380,10 +380,13 @@ def get_video_url(note_id):
     print(f"getting video url for {note_id}")
     note = Notes.query.filter_by(id=note_id).first()
 
-    if note.video_location == "":
+    if (note.video_location is None) or (note.video_location == ""):
+        print(f"No video avaiable for {note.id}")
         return {'status': "No video uploaded", 'url': ''}
 
     url = generate_presigned_url(note.video_location)
+
+    print(f'Video for {note.id} at url: {url}')
 
     return {'status': "Success", 'url': url}
 
@@ -419,9 +422,9 @@ def get_lines(transcript_results, speaker_start_times=None):
     '''
     from https://github.com/viethoangtranduong/AWS-Transcribe-Tutorial/blob/master/AWS_Transcribe_Tutorial.ipynb
     '''
-    
+
     assert transcript_results['status'] == "COMPLETED"
-    
+
     if not speaker_start_times:
         speaker_start_times = start_times(transcript_results)
 

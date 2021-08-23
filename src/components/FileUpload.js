@@ -22,6 +22,7 @@ function FileUpload(props) {
         })
         .then((data) => {
           console.log(data);
+          props.handleUploaded();
         })
         .catch((error) => {
           console.log("There was an error: ", error);
