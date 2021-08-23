@@ -402,3 +402,112 @@ def transcription_status(note_id):
         status = "Completed"
 
     return {'status': status}
+
+def start_times(transcript_results):
+    '''
+    Starting time to speaker mapping for all non-punctuation items.
+    '''
+    labels = transcript_results['results']['speaker_labels']['segments']
+    speaker_start_times={}
+
+    for label in labels:
+        for item in label['items']:
+            speaker_start_times[item['start_time']] = item['speaker_label']
+    return speaker_start_times
+
+def get_lines(transcript_results, speaker_start_times=None):
+    '''
+    from https://github.com/viethoangtranduong/AWS-Transcribe-Tutorial/blob/master/AWS_Transcribe_Tutorial.ipynb
+    '''
+    
+    assert transcript_results['status'] == "COMPLETED"
+    
+    if not speaker_start_times:
+        speaker_start_times = start_times(transcript_results)
+
+    items = transcript_results['results']['items']
+    lines = []
+    line = ''
+    time = 0
+    speaker = None 
+
+    # loop through all elements
+    for item in items:
+        content = item['alternatives'][0]['content']
+
+        # if it's starting time
+        if item.get('start_time'):
+            current_speaker = speaker_start_times[item['start_time']]
+
+        # in AWS output, there are types as punctuation
+        elif item['type'] == 'punctuation':
+            line = line + content
+
+        # handle different speaker
+        if current_speaker != speaker:
+            if speaker:
+                lines.append({'speaker':speaker, 'line':line, 'time':time})
+            line = content
+            speaker = current_speaker
+            time = item['start_time']
+
+        elif item['type'] != 'punctuation':
+            line = line + ' ' + content
+
+    lines.append({'speaker': speaker, 'line': line,'time': time})
+    sorted_lines = sorted(lines,key=lambda k: float(k['time']))
+
+    return sorted_lines
+
+def get_tag(transcript_results, time, prev_time=None, speaker_start_times=None, max_snippet_lenght=20):
+    '''
+    modified version of get_lines.
+    '''
+    
+    assert transcript_results['status'] == "COMPLETED"
+    
+    if not speaker_start_times:
+        speaker_start_times = start_times(transcript_results)
+
+    items = transcript_results['results']['items']
+    line = ''
+    time_start = ''
+    speaker = None 
+    current_speaker = ''
+    
+    if speaker_start_times and (float(list(speaker_start_times.keys())[-1]) < time):
+        return '', ''
+
+    # loop through all elements
+    for item in items:
+        content = item['alternatives'][0]['content']
+
+        # if it's starting time
+        if item.get('start_time'):
+            start_time = float(item['start_time'])
+            if prev_time and (start_time < prev_time):
+                continue
+            elif start_time < time - max_snippet_lenght:
+                continue
+            elif start_time > time:
+                break
+            current_speaker = speaker_start_times[item['start_time']]
+
+        # in AWS output, there are types as punctuation
+        elif item['type'] == 'punctuation':
+            line = line + content
+
+        # handle different speaker
+        if current_speaker != speaker:
+            line = content
+            speaker = current_speaker
+            if item['type'] != 'punctuation':
+                time_start = item['start_time']
+
+        elif item['type'] != 'punctuation':
+            line = line + ' ' + content
+
+    return line, time_start
+
+
+
