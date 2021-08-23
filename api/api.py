@@ -4,6 +4,8 @@ from datetime import datetime
 from flask import Flask
 from flask import request
 import uuid
+import requests
+import json
 
 from dotenv import load_dotenv
 
@@ -28,6 +30,7 @@ my_config = Config(
 )
 
 VIDEO_BUCKET = 'pronk-videos'
+TRANSCRIPT_BUCKET = 'pronk-transcripts'
 
 s3_client = boto3.client('s3',config=my_config,
                          aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
@@ -257,6 +260,89 @@ def generate_presigned_url(object_name, bucket=VIDEO_BUCKET):
     )
     return url
 
+def job_exists(job_name, transcription_client):
+      
+    # all the transcriptions
+    existed_jobs = transcription_client.list_transcription_jobs()
+
+    for job in existed_jobs['TranscriptionJobSummaries']:
+        if job_name == job['TranscriptionJobName']:
+            return True
+    return False
+
+def upload_transcript(note, transcript):
+
+    assert note.video_location != ""
+
+    fname = (note.video_location).split('.')[0] + ".json"
+
+    s3_client.put_object(
+     Body=json.dumps(transcript),
+     Bucket=TRANSCRIPT_BUCKET,
+     Key=fname
+    )
+
+    print(f'Successfully uploaded transcript to S3 at {fname}')
+
+    note.transcription_status = 2
+    db.session.add(note)
+    db.session.commit()
+
+    return True
+
+
+def transcribe_video(note, max_iter=60):
+
+    video_uri = note.video_location
+
+    input_uri = os.path.join('s3://', VIDEO_BUCKET, video_uri) # your S3 access link
+
+    print(f'video input: {input_uri}')
+
+    job_name = (video_uri.split('.')[0]).replace(" ", "")
+
+    # file format
+    file_format = video_uri.split('.')[1]
+
+    assert note.transcription_status == 0, f"Transcription status is {note.transcription_status}!"
+
+    # Update to in-progress
+    note.transcription_status = 1
+    db.session.add(note)
+    db.session.commit()
+
+    transcribe = boto3.client('transcribe',
+                            aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
+                            aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY"),
+                            region_name = 'eu-west-2')
+
+    assert not job_exists(job_name, transcribe)
+
+    start = time.time()
+    result = transcribe.start_transcription_job(
+        TranscriptionJobName=job_name,
+        Media={'MediaFileUri': input_uri},
+        MediaFormat=file_format,
+        LanguageCode='en-US',
+        Settings = {'ShowSpeakerLabels': True, 'MaxSpeakerLabels': 8}
+    )
+
+    for i in range(max_iter):
+        if result['TranscriptionJob']['TranscriptionJobStatus'] in ['COMPLETED', 'FAILED']:
+            print(f"Transcription took {time.time() - start} seconds")
+            break
+        time.sleep(15)
+        if i == max_iter -1:
+            print(f"Still no transcription result after {maxiter} iterations. Raising error!")
+            assert False
+        result = transcribe.get_transcription_job(TranscriptionJobName=job_name)
+
+    out = requests.get(result['TranscriptionJob']['Transcript']['TranscriptFileUri']).json()
+    assert out['status'] == "COMPLETED"
+
+    return upload_transcript(note, out)
+
+
 def process_video(file, note_id):
 
     fname = str(uuid.uuid4()) + ".mp4"
@@ -266,16 +352,14 @@ def process_video(file, note_id):
 
     s3_client.upload_file(fname, VIDEO_BUCKET, fname)
 
-    url = generate_presigned_url(fname)
-
-    print(f"generated video url at: {url}")
-
     note.video_location = fname
     db.session.commit()
 
-    return url
+    success = transcribe_video(note)
 
+    print("Successfully finished all phases of transcription!")
 
+    return True
 
 @app.route('/api/upload', methods = ['POST'])
 def upload_file():
@@ -286,7 +370,48 @@ def upload_file():
 
     #import pdb; pdb.set_trace();
     print(f"note id: {request.form['note_id']}")
-    url = process_video(request.files["file"], request.form['note_id'])
+    process_video(request.files["file"], request.form['note_id'])
 
-    return {'status':'Sucess', 'url': url}
+    return {'status':'Sucess'}
 
+@app.route('/api/get_video_url/<note_id>', methods = ['GET'])
+def get_video_url(note_id):
+
+    print(f"getting video url for {note_id}")
+    note = Notes.query.filter_by(id=note_id).first()
+
+    if note.video_location == "":
+        return {'status': "No video uploaded", 'url': ''}
+
+    url = generate_presigned_url(note.video_location)
+
+    return {'status': "Success", 'url': url}
+
+@app.route('/api/upload', methods = ['POST'])
+def upload_file():
+    ##file = request.files['file']
+    print(request)
+    print(request.files)
+    #check_keys(request.files, ['file', 'note_id'])
+
+    #import pdb; pdb.set_trace();
+    print(f"note id: {request.form['note_id']}")
+    process_video(request.files["file"], request.form['note_id'])
+
+    return {'status':'Sucess'}
+
+
+@app.route('/api/transcription_status/<note_id>', methods = ['GET'])
+def transcription_status(note_id):
+
+    print(f"getting transcription status for {note_id}")
+    note = Notes.query.filter_by(id=note_id).first()
+
+    status = "Not started"
+
+    if (note.transcription_status == 1):
+        status = "Incomplete"
+    elif (note.transcription_status == 2):
+        status = "Completed"
+
+    return {'status': status}
