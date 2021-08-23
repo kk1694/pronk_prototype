@@ -31,6 +31,7 @@ const useStyles = makeStyles({
 
 function Note() {
   const location = useLocation();
+  const history = useHistory()
 
   const classes = useStyles();
 
@@ -41,13 +42,21 @@ function Note() {
   const [title, setTitle] = useState(location.state.note_data.title);
   const [desc, setDesc] = useState(location.state.note_data.description);
 
-  
+  const handleClick = (() => {
+    history.push({
+      pathname: "/",
+      state: { project_id: projectID },
+    })
+  })  
 
   return (
     <div className={classes.dashboardBody}>
       <Container>
         <Grid container spacing={3}>
           <Grid element xs={6}>
+            <Button variant='contained' onClick={handleClick}>
+              Back
+            </Button>
             <Typography variant="h1">{title}</Typography>
 
             <Typography variant="subtitle">{subtitle}</Typography>
