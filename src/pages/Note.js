@@ -17,6 +17,8 @@ import { DropzoneArea } from "material-ui-dropzone";
 import FileUpload from "../components/FileUpload";
 import { useInterval } from "../components/useInterval";
 import Loading from "../components/Loading";
+import TagDisplay from "../components/TagDisplay";
+import TranscriptDisplay from "../components/TranscriptDisplay";
 
 const useStyles = makeStyles({
   dashboardBody: { marginTop: 30 },
@@ -59,13 +61,13 @@ const getTranscriptStatus = (noteID) => {
       return response.json();
     })
     .then((data) => {
-      console.log(data.status)
-      return data
+      console.log(data.status);
+      return data;
     })
     .catch((error) => {
       console.log("There was an error: ", error);
     });
-}
+};
 
 function Note() {
   const location = useLocation();
@@ -80,7 +82,7 @@ function Note() {
   const [title, setTitle] = useState(location.state.note_data.title);
   const [desc, setDesc] = useState(location.state.note_data.description);
 
-  const [videoURL, setVideoURL] = useState('');
+  const [videoURL, setVideoURL] = useState("");
   const [transcript, setTranscript] = useState([]);
   const [tags, setTags] = useState([]);
   const [tStatus, setTStatus] = useState("Not Started");
@@ -111,13 +113,13 @@ function Note() {
 
   useEffect(() => {
     if (tStatus !== "Completed") {
-      getTranscriptStatus(noteID).then(result => {
-        setTStatus(result.status)
-        setTranscript(result.lines)
-        setTags(result.tags)
-      })
+      getTranscriptStatus(noteID).then((result) => {
+        setTStatus(result.status);
+        setTranscript(result.lines);
+        setTags(result.tags);
+      });
     }
-  }, [noteID])
+  }, [noteID]);
 
   const handleClick = () => {
     history.push({
@@ -127,47 +129,54 @@ function Note() {
   };
 
   useInterval(() => {
-    if (tStatus !== 'Completed') {
+    if (tStatus !== "Completed") {
       console.log("Calling interval code");
 
-      getTranscriptStatus(noteID).then(result => {
-        setTStatus(result.status)
-        setTranscript(result.lines)
-        setTags(result.tags)
-      })
+      getTranscriptStatus(noteID).then((result) => {
+        setTStatus(result.status);
+        setTranscript(result.lines);
+        setTags(result.tags);
+      });
     }
-    
-  }, 5000)
+  }, 5000);
 
   const handleUploaded = () => updateURL();
 
   return (
     <div className={classes.dashboardBody}>
       <Container>
-        <Grid container spacing={3}>
-          <Grid element xs={6}>
-            <Button variant="contained" onClick={handleClick}>
-              Back
-            </Button>
-            <Typography variant="h1">{title}</Typography>
-            <Typography variant="subtitle">{subtitle}</Typography>
-            <Divider></Divider>
-            {videoURL === "" ? (
-              <FileUpload noteID={noteID} handleUploaded={handleUploaded} />
-            ) : (
-              "Video comes here: " + videoURL
-            )}
-            <Divider></Divider>
-            {/* {(tStatus === 'Not started' ? "" : "")} */}
-            {(tStatus === 'In Progress' ? <Loading/> : "")}
-            {(tStatus === 'Completed' ? JSON.stringify(transcript) : "")}
+        <div>
+          <Grid container spacing={10}>
+            <Grid item xs={6}>
+              <Typography variant="h3">{title}</Typography>
+              <Typography variant="subtitle">{subtitle}</Typography>
+              <br></br>
+
+              <Button variant="contained" onClick={handleClick}>
+                Back
+              </Button>
+              <Divider></Divider>
+              {videoURL === "" ? (
+                <FileUpload noteID={noteID} handleUploaded={handleUploaded} />
+              ) : (
+                "Video comes here: " + videoURL
+              )}
+              <Divider></Divider>
+              {/* {(tStatus === 'Not started' ? "" : "")} */}
+              {tStatus === "In Progress" ? <Loading /> : ""}
+              {tStatus === "Completed" ? (
+                <TranscriptDisplay transcript={transcript} />
+              ) : (
+                ""
+              )}
+            </Grid>
+            <Grid item xs={6}>
+              {tStatus === "Not started" ? "Upload video to see tags" : ""}
+              {tStatus === "In Progress" ? "Transcription in progress..." : ""}
+              {tStatus === "Completed" ? <TagDisplay tags={tags} /> : ""}
+            </Grid>
           </Grid>
-          <Grid element xs={6}>
-            {(tStatus === 'Not started' ? "Upload video to see tags" : "")}
-            {(tStatus === 'In Progress' ? "Transcription in progress..." : "")}
-            {(tStatus === 'Completed' ? "TODO!" : "")}
-          </Grid>
-        </Grid>
+        </div>
       </Container>
     </div>
   );

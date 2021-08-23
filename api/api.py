@@ -327,20 +327,7 @@ def transcribe_video(note, max_iter=60):
         Settings = {'ShowSpeakerLabels': True, 'MaxSpeakerLabels': 8}
     )
 
-    for i in range(max_iter):
-        if result['TranscriptionJob']['TranscriptionJobStatus'] in ['COMPLETED', 'FAILED']:
-            print(f"Transcription took {time.time() - start} seconds")
-            break
-        time.sleep(15)
-        if i == max_iter -1:
-            print(f"Still no transcription result after {max_iter} iterations. Raising error!")
-            assert False
-        result = transcribe.get_transcription_job(TranscriptionJobName=job_name)
-
-    out = requests.get(result['TranscriptionJob']['Transcript']['TranscriptFileUri']).json()
-    assert out['status'] == "COMPLETED"
-
-    return upload_transcript(note, out)
+    return True
 
 
 def process_video(file, note_id):
@@ -514,10 +501,40 @@ def get_tag_snippets(note, transcript, speaker_start_times = None):
     prev_time = None
     for tag in note.tags:
         line, time_start, speaker = get_tag(transcript, tag.time, prev_time, speaker_start_times)
-        out.append({"line": line, "time": time, "speaker": speaker, "category": tag.category, "comment": tag.comment})
+        out.append({"line": line, "time": tag.time, "speaker": speaker, "category": tag.category, "comment": tag.comment})
         prev_time = tag.time
     print(f"Returning these tag snippets: {out}")
     return out
+
+def update_transcription_status(note):
+
+    job_name = (note.video_location.split('.')[0]).replace(" ", "")
+
+    transcribe = boto3.client('transcribe',
+                            aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
+                            aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY"),
+                            region_name = 'eu-west-2')
+    
+    try:
+        result = transcribe.get_transcription_job(TranscriptionJobName=job_name)
+    except Exception as error:
+        print(error)
+        assert False
+    
+    if result['TranscriptionJob']['TranscriptionJobStatus'] == 'FAILED':
+        print("Transcription failed!!!!")
+        assert False
+    
+    if result['TranscriptionJob']['TranscriptionJobStatus'] == 'COMPLETED':
+
+        transcript = requests.get(result['TranscriptionJob']['Transcript']['TranscriptFileUri']).json()
+        assert transcript['status'] == "COMPLETED"
+
+        upload_transcript(note, transcript)
+
+        print('Transcript status updated!')
+
+    return None
 
 @app.route('/api/transcript/<note_id>', methods = ['GET'])
 def transcript(note_id):
@@ -529,14 +546,21 @@ def transcript(note_id):
     lines = []
     tags = []
 
+    print(f'Looking at status for {note}')
+
     if (note.transcription_status == 1):
-        status = "Incomplete"
-    elif (note.transcription_status == 2):
+        status = "In Progress"
+        update_transcription_status(note)
+
+    # not elif, since updating transcription status might have changed it!
+    if (note.transcription_status == 2):
         status = "Completed"
         uri = (note.video_location).split('.')[0] + ".json"
         transc_out = transcription_output(uri)
         speaker_start_times = start_times(transc_out)
         lines = get_lines(transc_out, speaker_start_times)
         tags = get_tag_snippets(note, transc_out, speaker_start_times)
+    
+    print(f"Status is {status}")
 
     return {'status': status, "lines": lines, "tags": tags}
