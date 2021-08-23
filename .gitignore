@@ -2,6 +2,9 @@
 
 .env
 
+# for development we might have some mp4 files hanging around
+*.mp4
+
 # python relate
 venv
 __pycache__
