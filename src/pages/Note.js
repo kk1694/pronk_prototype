@@ -15,6 +15,8 @@ import RecordingCard from "../components/RecordingCard";
 import CloudUploadIcon from "@material-ui/icons/CloudUpload";
 import { DropzoneArea } from "material-ui-dropzone";
 import FileUpload from "../components/FileUpload";
+import { useInterval } from "../components/useInterval";
+import Loading from "../components/Loading";
 
 const useStyles = makeStyles({
   dashboardBody: { marginTop: 30 },
@@ -46,6 +48,25 @@ const getVideoURL = (noteID) => {
     });
 };
 
+const getTranscriptStatus = (noteID) => {
+  return fetch("/api/transcript/" + noteID, {
+    method: "GET", // *GET, POST, PUT, DELETE, etc.
+    headers: {
+      "Content-Type": "application/json",
+    },
+  })
+    .then((response) => {
+      return response.json();
+    })
+    .then((data) => {
+      console.log(data.status)
+      return data
+    })
+    .catch((error) => {
+      console.log("There was an error: ", error);
+    });
+}
+
 function Note() {
   const location = useLocation();
   const history = useHistory();
@@ -59,7 +80,10 @@ function Note() {
   const [title, setTitle] = useState(location.state.note_data.title);
   const [desc, setDesc] = useState(location.state.note_data.description);
 
-  const [videoURL, setVideoURL] = useState("");
+  const [videoURL, setVideoURL] = useState('');
+  const [transcript, setTranscript] = useState([]);
+  const [tags, setTags] = useState([]);
+  const [tStatus, setTStatus] = useState("Not Started");
 
   const updateURL = () => {
     getVideoURL(noteID)
@@ -85,12 +109,35 @@ function Note() {
     }
   }, [noteID, videoURL]);
 
+  useEffect(() => {
+    if (tStatus !== "Completed") {
+      getTranscriptStatus(noteID).then(result => {
+        setTStatus(result.status)
+        setTranscript(result.lines)
+        setTags(result.tags)
+      })
+    }
+  }, [noteID])
+
   const handleClick = () => {
     history.push({
       pathname: "/",
       state: { project_id: projectID },
     });
   };
+
+  useInterval(() => {
+    if (tStatus !== 'Completed') {
+      console.log("Calling interval code");
+
+      getTranscriptStatus(noteID).then(result => {
+        setTStatus(result.status)
+        setTranscript(result.lines)
+        setTags(result.tags)
+      })
+    }
+    
+  }, 5000)
 
   const handleUploaded = () => updateURL();
 
@@ -110,9 +157,15 @@ function Note() {
             ) : (
               "Video comes here: " + videoURL
             )}
+            <Divider></Divider>
+            {/* {(tStatus === 'Not started' ? "" : "")} */}
+            {(tStatus === 'In Progress' ? <Loading/> : "")}
+            {(tStatus === 'Completed' ? JSON.stringify(transcript) : "")}
           </Grid>
           <Grid element xs={6}>
-            TODO add tags!
+            {(tStatus === 'Not started' ? "Upload video to see tags" : "")}
+            {(tStatus === 'In Progress' ? "Transcription in progress..." : "")}
+            {(tStatus === 'Completed' ? "TODO!" : "")}
           </Grid>
         </Grid>
       </Container>

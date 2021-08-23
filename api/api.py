@@ -519,9 +519,8 @@ def get_tag_snippets(note, transcript, speaker_start_times = None):
     print(f"Returning these tag snippets: {out}")
     return out
 
-
-@app.route('/api/transcription/<note_id>', methods = ['GET'])
-def transcription(note_id):
+@app.route('/api/transcript/<note_id>', methods = ['GET'])
+def transcript(note_id):
 
     print(f"getting transcription status for {note_id}")
     note = Notes.query.filter_by(id=note_id).first()
@@ -534,7 +533,8 @@ def transcription(note_id):
         status = "Incomplete"
     elif (note.transcription_status == 2):
         status = "Completed"
-        transc_out = transcription_output(note.video_location)
+        uri = (note.video_location).split('.')[0] + ".json"
+        transc_out = transcription_output(uri)
         speaker_start_times = start_times(transc_out)
         lines = get_lines(transc_out, speaker_start_times)
         tags = get_tag_snippets(note, transc_out, speaker_start_times)
