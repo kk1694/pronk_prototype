@@ -391,21 +391,6 @@ def get_video_url(note_id):
     return {'status': "Success", 'url': url}
 
 
-@app.route('/api/transcription_status/<note_id>', methods = ['GET'])
-def transcription_status(note_id):
-
-    print(f"getting transcription status for {note_id}")
-    note = Notes.query.filter_by(id=note_id).first()
-
-    status = "Not started"
-
-    if (note.transcription_status == 1):
-        status = "Incomplete"
-    elif (note.transcription_status == 2):
-        status = "Completed"
-
-    return {'status': status}
-
 def start_times(transcript_results):
     '''
     Starting time to speaker mapping for all non-punctuation items.
@@ -510,7 +495,48 @@ def get_tag(transcript_results, time, prev_time=None, speaker_start_times=None, 
         elif item['type'] != 'punctuation':
             line = line + ' ' + content
 
-    return line, time_start
+    return line, time_start, current_speaker
+
+def transcription_output(transcript_uri):
+
+    try:
+        data_in_bytes = s3_client.get_object(Bucket=TRANSCRIPT_BUCKET, Key=transcript_uri)['Body'].read()
+    except Exception as err:
+        print("encountered error. TODO handle error")
+        print(err)
+        assert False
+    decoded_data = data_in_bytes.decode('utf-8')
+
+    return json.loads(decoded_data)
+
+def get_tag_snippets(note, transcript, speaker_start_times = None):
+    out = []
+    prev_time = None
+    for tag in note.tags:
+        line, time_start, speaker = get_tag(transcript, tag.time, prev_time, speaker_start_times)
+        out.append({"line": line, "time": time, "speaker": speaker, "category": tag.category, "comment": tag.comment})
+        prev_time = tag.time
+    print(f"Returning these tag snippets: {out}")
+    return out
 
 
+@app.route('/api/transcription/<note_id>', methods = ['GET'])
+def transcription(note_id):
 
+    print(f"getting transcription status for {note_id}")
+    note = Notes.query.filter_by(id=note_id).first()
+
+    status = "Not started"
+    lines = []
+    tags = []
+
+    if (note.transcription_status == 1):
+        status = "Incomplete"
+    elif (note.transcription_status == 2):
+        status = "Completed"
+        transc_out = transcription_output(note.video_location)
+        speaker_start_times = start_times(transc_out)
+        lines = get_lines(transc_out, speaker_start_times)
+        tags = get_tag_snippets(note, transc_out, speaker_start_times)
+
+    return {'status': status, "lines": lines, "tags": tags}
