@@ -333,7 +333,7 @@ def transcribe_video(note, max_iter=60):
             break
         time.sleep(15)
         if i == max_iter -1:
-            print(f"Still no transcription result after {maxiter} iterations. Raising error!")
+            print(f"Still no transcription result after {max_iter} iterations. Raising error!")
             assert False
         result = transcribe.get_transcription_job(TranscriptionJobName=job_name)
 
@@ -386,19 +386,6 @@ def get_video_url(note_id):
     url = generate_presigned_url(note.video_location)
 
     return {'status': "Success", 'url': url}
-
-@app.route('/api/upload', methods = ['POST'])
-def upload_file():
-    ##file = request.files['file']
-    print(request)
-    print(request.files)
-    #check_keys(request.files, ['file', 'note_id'])
-
-    #import pdb; pdb.set_trace();
-    print(f"note id: {request.form['note_id']}")
-    process_video(request.files["file"], request.form['note_id'])
-
-    return {'status':'Sucess'}
 
 
 @app.route('/api/transcription_status/<note_id>', methods = ['GET'])
