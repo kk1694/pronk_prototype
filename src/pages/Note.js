@@ -19,6 +19,7 @@ import { useInterval } from "../components/useInterval";
 import Loading from "../components/Loading";
 import TagDisplay from "../components/TagDisplay";
 import TranscriptDisplay from "../components/TranscriptDisplay";
+import ReactPlayer from "react-player";
 
 const useStyles = makeStyles({
   dashboardBody: { marginTop: 30 },
@@ -159,8 +160,9 @@ function Note() {
               {videoURL === "" ? (
                 <FileUpload noteID={noteID} handleUploaded={handleUploaded} />
               ) : (
-                "Video comes here: " + videoURL
+                <ReactPlayer url={videoURL} controls={true}/>
               )}
+
               <Divider></Divider>
               {/* {(tStatus === 'Not started' ? "" : "")} */}
               {tStatus === "In Progress" ? <Loading /> : ""}
