@@ -20,6 +20,7 @@ import Loading from "../components/Loading";
 import TagDisplay from "../components/TagDisplay";
 import TranscriptDisplay from "../components/TranscriptDisplay";
 import ReactPlayer from "react-player";
+import ClickableText from "../components/ClickableText";
 
 const useStyles = makeStyles({
   dashboardBody: { marginTop: 30 },
@@ -149,7 +150,7 @@ function Note() {
         <div>
           <Grid container spacing={10}>
             <Grid item xs={6}>
-              <Typography variant="h3">{title}</Typography>
+              <ClickableText variant='h3' content={title}/>
               <Typography variant="subtitle">{subtitle}</Typography>
               <br></br>
 
