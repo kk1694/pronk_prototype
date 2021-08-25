@@ -239,7 +239,7 @@ def get_notes(project_id):
     out = []
 
     for i, note in enumerate(notes):
-        _temp = {'id': i, 'title': "TODO"}
+        _temp = {'id': i, 'title': "Untitled"}
         _temp['description'] = note.description
         _temp['note_id'] = note.id
         _temp['subtitle'] = note.recording_start.strftime("%Y / %m / %d")
@@ -499,6 +499,7 @@ def transcription_output(transcript_uri):
 def get_tag_snippets(note, transcript, speaker_start_times = None):
     out = []
     prev_time = None
+    print(f"Number of tags for note: {len(note.tags)}")
     for tag in note.tags:
         line, time_start, speaker = get_tag(transcript, tag.time, prev_time, speaker_start_times)
         out.append({"line": line, "time": tag.time, "speaker": speaker, "category": tag.category, "comment": tag.comment})

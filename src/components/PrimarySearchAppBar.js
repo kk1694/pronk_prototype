@@ -34,15 +34,6 @@ export default function ButtonAppBar() {
     setDrawerOpen(!drawerOpen);
   };
 
-  /// This is for the dummy flask integration
-  const [currentTime, setCurrentTime] = useState(0);
-
-  useEffect(() => {
-    fetch('/api/time').then(res => res.json()).then(data => {
-      setCurrentTime(data.time);
-    });
-  }, []);
-
   return (
     <div className={classes.root}>
       <AppBar className={classes.appBar} position="static">
@@ -51,7 +42,7 @@ export default function ButtonAppBar() {
             <MenuIcon />
           </IconButton>
           <Typography variant="h6" className={classes.title}>
-            Noki.ai Current time is {currentTime}
+            Noki.ai
           </Typography>
           <LoginButton/>
           <LogoutButton/>

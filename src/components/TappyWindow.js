@@ -95,12 +95,6 @@ function TappyWindow(props) {
       </Container>
 
       <Container>
-
-        {JSON.stringify(props.project_id)}
-
-      </Container>
-
-      <Container>
         {isForm ? (
           <TappyComment handleComment={handleComment} id={currentTapID} time={currentTapTime} />
         ) : (

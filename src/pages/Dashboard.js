@@ -64,7 +64,6 @@ function Dashboard() {
   return (
     <div className={classes.dashboardBody}>
       <Container>
-        project: {projectID}
         {/* {JSON.stringify(user, null, 2)}
 
       Sub: {JSON.stringify(user.sub, null, 2)} */}
