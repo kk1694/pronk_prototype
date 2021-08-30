@@ -84,6 +84,7 @@ class Notes(db.Model):
     project_id =  db.Column(UUID(as_uuid=True), db.ForeignKey('projects.id'), nullable=False)
 
     date_created = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    title = db.Column(db.String(50), default='Untitled')
     description = db.Column(db.Text)
     recording_start = db.Column(db.DateTime, nullable=False)
     recording_stop = db.Column(db.DateTime, nullable=False)
@@ -223,6 +224,28 @@ def create_new_note():
     return {'status': 'Note successfully created!'}
 
 
+@app.route('/api/update_title/<note_id>', methods = ['POST'])
+def update_title(note_id):
+    if request.method != 'POST':
+        print(f'Request method not POST, but {request.method}!!!')
+    
+    request_data = request.get_json()
+
+    assert check_keys(request_data, ['title'])
+
+    print(request_data)
+
+    note = Notes.query.filter_by(id=note_id).first()
+
+    note.title = request_data['title']
+
+    db.session.add(note)
+    db.session.commit()
+
+    print(f"title for {note_id} updated to {request_data['title']}")
+
+    return {'status': 'Title successfully updated!'}
+
 
 @app.route('/api/get_notes/<project_id>', methods = ['GET'])
 def get_notes(project_id):
@@ -239,7 +262,7 @@ def get_notes(project_id):
     out = []
 
     for i, note in enumerate(notes):
-        _temp = {'id': i, 'title': "Untitled"}
+        _temp = {'id': i, 'title': note.title}
         _temp['description'] = note.description
         _temp['note_id'] = note.id
         _temp['subtitle'] = note.recording_start.strftime("%Y / %m / %d")
