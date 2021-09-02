@@ -2,6 +2,7 @@ import React from "react";
 import Button from "@material-ui/core/Button";
 import ButtonGroup from "@material-ui/core/ButtonGroup";
 import { makeStyles } from "@material-ui/core/styles";
+import { green } from "@material-ui/core/colors";
 
 const useStyles = makeStyles({
   root: {
@@ -14,6 +15,7 @@ const useStyles = makeStyles({
   },
   single: {
     margin: 5,
+    border: '1px solid'
   },
 });
 
@@ -55,7 +57,7 @@ function TappyButton(props) {
           className={buttonStyles.root}
           onClick={handleClick}
           disabled={props.disabled}
-          style={{ minWidth: "75%" }}
+          style={{ minWidth: "75%", border: '1px solid'}}
         >
           {props.name}
         </Button>
@@ -63,7 +65,7 @@ function TappyButton(props) {
           className={buttonStyles.root}
           onClick={handleClick}
           disabled={props.disabled}
-          style={{ minWidth: "25%" }}
+          style={{ minWidth: "25%", border: '1px solid'}}
         >
           {" "}
           {props.numClicks}

@@ -150,21 +150,36 @@ function Note() {
         <div>
           <Grid container spacing={10}>
             <Grid item xs={6}>
-              <ClickableText variant='h3' content={title}/>
-              <Typography variant="subtitle">{subtitle}</Typography>
-              <br></br>
+              <ClickableText variant="h3" title={title} setTitle={setTitle} noteID={noteID} />
 
-              <Button variant="contained" onClick={handleClick}>
+              <Button
+                variant="contained"
+                onClick={handleClick}
+                style={{
+                  float: "right",
+                  position: "relative",
+                  transform: "translateY(-100%)",
+                  height: 30,
+                }}
+              >
                 Back
               </Button>
+
+              <Typography variant="subtitle">{subtitle}</Typography>
               <Divider></Divider>
               {videoURL === "" ? (
                 <FileUpload noteID={noteID} handleUploaded={handleUploaded} />
               ) : (
-                <ReactPlayer url={videoURL} controls={true}/>
+                <ReactPlayer url={videoURL} controls={true} />
               )}
 
-              <Divider></Divider>
+              <br></br>
+
+              <Typography variant="h6" style={{ marginTop: 10 }}>
+                Transcript
+              </Typography>
+
+              <Divider style={{ marginBottom: 10 }}></Divider>
               {/* {(tStatus === 'Not started' ? "" : "")} */}
               {tStatus === "In Progress" ? <Loading /> : ""}
               {tStatus === "Completed" ? (

@@ -5,8 +5,19 @@ function TagDisplay(props) {
   return (
     <div>
       <Typography variant="h3">Bookmarks</Typography>
+      <Button
+        variant="contained"
+        style={{
+          float: "right",
+          position: "relative",
+          transform: "translateY(-100%)",
+          height: 30,
+        }}
+      >
+        Export
+      </Button>
       <br></br>
-      <Button variant="contained">Export</Button>
+
       <Divider gutterBottom />
       {props.tags.map(({ category, comment, line, speaker, time }) => (
         <div>

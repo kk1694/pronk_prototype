@@ -1,15 +1,15 @@
-import { Container, Typography } from "@material-ui/core";
+import { Container, Grid, Typography } from "@material-ui/core";
 import React from "react";
 
 function TranscriptDisplay(props) {
   return (
-    <Container>
+    <Grid container>
       {props.transcript.map(({ speaker, time, line }) => (
-        <Typography variant="body1">
+        <Typography variant="body1" align="justify">
           <b>{speaker}</b> <i>{time}</i>: {line}
         </Typography>
       ))}
-    </Container>
+    </Grid>
   );
 }
 
