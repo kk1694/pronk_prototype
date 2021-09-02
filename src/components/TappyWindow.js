@@ -90,14 +90,8 @@ function TappyWindow(props) {
 
   return (
     <Container maxWidth="sm" justify="center" align="center">
-      <Container style={{ marginTop: "20vh" }}>
+      <Container style={{ marginTop: "12vh" }}>
         <StartButton onStartStop={handleStartStop} running={running} />
-      </Container>
-
-      <Container>
-
-        {JSON.stringify(props.project_id)}
-
       </Container>
 
       <Container>

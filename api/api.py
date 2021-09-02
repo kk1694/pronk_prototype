@@ -4,6 +4,8 @@ from datetime import datetime
 from flask import Flask
 from flask import request
 import uuid
+import requests
+import json
 
 from dotenv import load_dotenv
 
@@ -11,8 +13,29 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from sqlalchemy.dialects.postgresql import UUID
 
+import boto3
+from botocore.config import Config
+
+
 env_loaded = load_dotenv()
 print(f'.env file loaded: {env_loaded}')
+
+my_config = Config(
+    region_name = 'eu-west-2',
+    signature_version = 's3v4',
+    retries = {
+        'max_attempts': 10,
+    },
+    s3={'addressing_style': 'path'},
+)
+
+VIDEO_BUCKET = 'pronk-videos'
+TRANSCRIPT_BUCKET = 'pronk-transcripts'
+
+s3_client = boto3.client('s3',config=my_config,
+                         aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
+                         aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY")
+)
 
 app = Flask(__name__)
 
@@ -61,11 +84,16 @@ class Notes(db.Model):
     project_id =  db.Column(UUID(as_uuid=True), db.ForeignKey('projects.id'), nullable=False)
 
     date_created = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    title = db.Column(db.String(50), default='Untitled')
     description = db.Column(db.Text)
     recording_start = db.Column(db.DateTime, nullable=False)
     recording_stop = db.Column(db.DateTime, nullable=False)
-    video_location = db.Column(db.String(32))
-    transcript_location = db.Column(db.String(32))
+    video_location = db.Column(db.String(50))
+
+    # 0 - not done
+    # 1 - in progress
+    # 2 - done
+    transcription_status = db.Column(db.Integer, default=0)
 
     tags = db.relationship('Tags', backref='note', lazy=True)
 
@@ -196,6 +224,28 @@ def create_new_note():
     return {'status': 'Note successfully created!'}
 
 
+@app.route('/api/update_title/<note_id>', methods = ['POST'])
+def update_title(note_id):
+    if request.method != 'POST':
+        print(f'Request method not POST, but {request.method}!!!')
+    
+    request_data = request.get_json()
+
+    assert check_keys(request_data, ['title'])
+
+    print(request_data)
+
+    note = Notes.query.filter_by(id=note_id).first()
+
+    note.title = request_data['title']
+
+    db.session.add(note)
+    db.session.commit()
+
+    print(f"title for {note_id} updated to {request_data['title']}")
+
+    return {'status': 'Title successfully updated!'}
+
 
 @app.route('/api/get_notes/<project_id>', methods = ['GET'])
 def get_notes(project_id):
@@ -212,7 +262,7 @@ def get_notes(project_id):
     out = []
 
     for i, note in enumerate(notes):
-        _temp = {'id': i, 'title': "TODO"}
+        _temp = {'id': i, 'title': note.title}
         _temp['description'] = note.description
         _temp['note_id'] = note.id
         _temp['subtitle'] = note.recording_start.strftime("%Y / %m / %d")
@@ -224,3 +274,317 @@ def get_notes(project_id):
     return {'status': 'Success', 'note_list': out}
 
 
+def generate_presigned_url(object_name, bucket=VIDEO_BUCKET):
+    url = s3_client.generate_presigned_url(
+        'get_object',
+        Params={'Bucket': bucket, 'Key': object_name},
+        ExpiresIn=604800,
+        HttpMethod=None
+    )
+    return url
+
+def job_exists(job_name, transcription_client):
+      
+    # all the transcriptions
+    existed_jobs = transcription_client.list_transcription_jobs()
+
+    for job in existed_jobs['TranscriptionJobSummaries']:
+        if job_name == job['TranscriptionJobName']:
+            return True
+    return False
+
+def upload_transcript(note, transcript):
+
+    assert note.video_location != ""
+
+    fname = (note.video_location).split('.')[0] + ".json"
+
+    s3_client.put_object(
+     Body=json.dumps(transcript),
+     Bucket=TRANSCRIPT_BUCKET,
+     Key=fname
+    )
+
+    print(f'Successfully uploaded transcript to S3 at {fname}')
+
+    note.transcription_status = 2
+    db.session.add(note)
+    db.session.commit()
+
+    return True
+
+
+def transcribe_video(note, max_iter=60):
+
+    video_uri = note.video_location
+
+    input_uri = os.path.join('s3://', VIDEO_BUCKET, video_uri) # your S3 access link
+
+    print(f'video input: {input_uri}')
+
+    job_name = (video_uri.split('.')[0]).replace(" ", "")
+
+    # file format
+    file_format = video_uri.split('.')[1]
+
+    assert note.transcription_status == 0, f"Transcription status is {note.transcription_status}!"
+
+    # Update to in-progress
+    note.transcription_status = 1
+    db.session.add(note)
+    db.session.commit()
+
+    transcribe = boto3.client('transcribe',
+                            aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
+                            aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY"),
+                            region_name = 'eu-west-2')
+
+    assert not job_exists(job_name, transcribe)
+
+    start = time.time()
+    result = transcribe.start_transcription_job(
+        TranscriptionJobName=job_name,
+        Media={'MediaFileUri': input_uri},
+        MediaFormat=file_format,
+        LanguageCode='en-US',
+        Settings = {'ShowSpeakerLabels': True, 'MaxSpeakerLabels': 8}
+    )
+
+    return True
+
+
+def process_video(file, note_id):
+
+    fname = str(uuid.uuid4()) + ".mp4"
+    file.save(fname)
+
+    note = Notes.query.filter_by(id=note_id).first()
+
+    s3_client.upload_file(fname, VIDEO_BUCKET, fname)
+
+    note.video_location = fname
+    db.session.commit()
+
+    success = transcribe_video(note)
+
+    print("Successfully finished all phases of transcription!")
+
+    return True
+
+@app.route('/api/upload', methods = ['POST'])
+def upload_file():
+    ##file = request.files['file']
+    print(request)
+    print(request.files)
+    #check_keys(request.files, ['file', 'note_id'])
+
+    #import pdb; pdb.set_trace();
+    print(f"note id: {request.form['note_id']}")
+    process_video(request.files["file"], request.form['note_id'])
+
+    return {'status':'Sucess'}
+
+@app.route('/api/get_video_url/<note_id>', methods = ['GET'])
+def get_video_url(note_id):
+
+    print(f"getting video url for {note_id}")
+    note = Notes.query.filter_by(id=note_id).first()
+
+    if (note.video_location is None) or (note.video_location == ""):
+        print(f"No video avaiable for {note.id}")
+        return {'status': "No video uploaded", 'url': ''}
+
+    url = generate_presigned_url(note.video_location)
+
+    print(f'Video for {note.id} at url: {url}')
+
+    return {'status': "Success", 'url': url}
+
+
+def start_times(transcript_results):
+    '''
+    Starting time to speaker mapping for all non-punctuation items.
+    '''
+    labels = transcript_results['results']['speaker_labels']['segments']
+    speaker_start_times={}
+
+    for label in labels:
+        for item in label['items']:
+            speaker_start_times[item['start_time']] = item['speaker_label']
+    return speaker_start_times
+
+def get_lines(transcript_results, speaker_start_times=None):
+    '''
+    from https://github.com/viethoangtranduong/AWS-Transcribe-Tutorial/blob/master/AWS_Transcribe_Tutorial.ipynb
+    '''
+
+    assert transcript_results['status'] == "COMPLETED"
+
+    if not speaker_start_times:
+        speaker_start_times = start_times(transcript_results)
+
+    items = transcript_results['results']['items']
+    lines = []
+    line = ''
+    time = 0
+    speaker = None 
+
+    # loop through all elements
+    for item in items:
+        content = item['alternatives'][0]['content']
+
+        # if it's starting time
+        if item.get('start_time'):
+            current_speaker = speaker_start_times[item['start_time']]
+
+        # in AWS output, there are types as punctuation
+        elif item['type'] == 'punctuation':
+            line = line + content
+
+        # handle different speaker
+        if current_speaker != speaker:
+            if speaker:
+                lines.append({'speaker':speaker, 'line':line, 'time':time})
+            line = content
+            speaker = current_speaker
+            time = item['start_time']
+
+        elif item['type'] != 'punctuation':
+            line = line + ' ' + content
+
+    lines.append({'speaker': speaker, 'line': line,'time': time})
+    sorted_lines = sorted(lines,key=lambda k: float(k['time']))
+
+    return sorted_lines
+
+def get_tag(transcript_results, time, prev_time=None, speaker_start_times=None, max_snippet_lenght=20):
+    '''
+    modified version of get_lines.
+    '''
+    
+    assert transcript_results['status'] == "COMPLETED"
+    
+    if not speaker_start_times:
+        speaker_start_times = start_times(transcript_results)
+
+    items = transcript_results['results']['items']
+    line = ''
+    time_start = ''
+    speaker = None 
+    current_speaker = ''
+    
+    if speaker_start_times and (float(list(speaker_start_times.keys())[-1]) < time):
+        return '', ''
+
+    # loop through all elements
+    for item in items:
+        content = item['alternatives'][0]['content']
+
+        # if it's starting time
+        if item.get('start_time'):
+            start_time = float(item['start_time'])
+            if prev_time and (start_time < prev_time):
+                continue
+            elif start_time < time - max_snippet_lenght:
+                continue
+            elif start_time > time:
+                break
+            current_speaker = speaker_start_times[item['start_time']]
+
+        # in AWS output, there are types as punctuation
+        elif item['type'] == 'punctuation':
+            line = line + content
+
+        # handle different speaker
+        if current_speaker != speaker:
+            line = content
+            speaker = current_speaker
+            if item['type'] != 'punctuation':
+                time_start = item['start_time']
+
+        elif item['type'] != 'punctuation':
+            line = line + ' ' + content
+
+    return line, time_start, current_speaker
+
+def transcription_output(transcript_uri):
+
+    try:
+        data_in_bytes = s3_client.get_object(Bucket=TRANSCRIPT_BUCKET, Key=transcript_uri)['Body'].read()
+    except Exception as err:
+        print("encountered error. TODO handle error")
+        print(err)
+        assert False
+    decoded_data = data_in_bytes.decode('utf-8')
+
+    return json.loads(decoded_data)
+
+def get_tag_snippets(note, transcript, speaker_start_times = None):
+    out = []
+    prev_time = None
+    print(f"Number of tags for note: {len(note.tags)}")
+    for tag in note.tags:
+        line, time_start, speaker = get_tag(transcript, tag.time, prev_time, speaker_start_times)
+        out.append({"line": line, "time": tag.time, "speaker": speaker, "category": tag.category, "comment": tag.comment})
+        prev_time = tag.time
+    print(f"Returning these tag snippets: {out}")
+    return out
+
+def update_transcription_status(note):
+
+    job_name = (note.video_location.split('.')[0]).replace(" ", "")
+
+    transcribe = boto3.client('transcribe',
+                            aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
+                            aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY"),
+                            region_name = 'eu-west-2')
+    
+    try:
+        result = transcribe.get_transcription_job(TranscriptionJobName=job_name)
+    except Exception as error:
+        print(error)
+        assert False
+    
+    if result['TranscriptionJob']['TranscriptionJobStatus'] == 'FAILED':
+        print("Transcription failed!!!!")
+        assert False
+    
+    if result['TranscriptionJob']['TranscriptionJobStatus'] == 'COMPLETED':
+
+        transcript = requests.get(result['TranscriptionJob']['Transcript']['TranscriptFileUri']).json()
+        assert transcript['status'] == "COMPLETED"
+
+        upload_transcript(note, transcript)
+
+        print('Transcript status updated!')
+
+    return None
+
+@app.route('/api/transcript/<note_id>', methods = ['GET'])
+def transcript(note_id):
+
+    print(f"getting transcription status for {note_id}")
+    note = Notes.query.filter_by(id=note_id).first()
+
+    status = "Not started"
+    lines = []
+    tags = []
+
+    print(f'Looking at status for {note}')
+
+    if (note.transcription_status == 1):
+        status = "In Progress"
+        update_transcription_status(note)
+
+    # not elif, since updating transcription status might have changed it!
+    if (note.transcription_status == 2):
+        status = "Completed"
+        uri = (note.video_location).split('.')[0] + ".json"
+        transc_out = transcription_output(uri)
+        speaker_start_times = start_times(transc_out)
+        lines = get_lines(transc_out, speaker_start_times)
+        tags = get_tag_snippets(note, transc_out, speaker_start_times)
+    
+    print(f"Status is {status}")
+
+    return {'status': status, "lines": lines, "tags": tags}

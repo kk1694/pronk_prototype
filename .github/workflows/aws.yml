@@ -120,6 +120,6 @@ jobs:
       uses: aws-actions/amazon-ecs-deploy-task-definition@v1
       with:
         task-definition: aws-task-definition.json
-        service: noki-frontend-service
-        cluster: noki-frontend-trial
+        service: noki-app-ecs
+        cluster: noki-app-cluster
         wait-for-service-stability: true

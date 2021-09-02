@@ -10,7 +10,6 @@ function Create() {
 
     return (
         <div>
-            {JSON.stringify({'asdf': 'asdf', 'stuff': location.state})}
             <TappyWindow project_id={location.state.project_id} />
         </div>
     )
